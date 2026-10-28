@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LangGraph 介绍：有状态智能体的编排框架</title>
+<style>
+  :root {
+    --bg: #f4f5f6;
+    --panel: #ffffff;
+    --text: #1d2329;
+    --muted: #5b6670;
+    --line: #d3d8dd;
+    --accent: #0b6e8a;
+    --accent-weak: #e3f0f4;
+    --warn: #b45309;
+    --warn-weak: #fdf1e3;
+    --bad: #b42318;
+    --bad-weak: #fbe9e7;
+    --ok: #2f7d32;
+    --ok-weak: #e7f3e8;
+    --code-bg: #1e2329;
+    --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.7 -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  }
+  .topbar {
+    position: sticky; top: 0; z-index: 20; height: 48px;
+    display: flex; align-items: center; gap: 16px; padding: 0 20px;
+    background: #20262c; color: #e8ecef; border-bottom: 3px solid var(--accent);
+  }
+  .topbar b { font-size: 15px; letter-spacing: .5px; }
+  .topbar .sub { color: #9aa6b0; font-size: 13px; }
+  .topbar .spacer { flex: 1; }
+  .topbar button {
+    background: transparent; color: #e8ecef; border: 1px solid #56616b;
+    padding: 4px 12px; border-radius: 3px; cursor: pointer; font-size: 13px;
+  }
+  .topbar button:hover { border-color: var(--accent); color: #fff; }
+  .wrap { display: grid; grid-template-columns: 240px 1fr; max-width: 1360px; margin: 0 auto; }
+  nav.toc {
+    position: sticky; top: 48px; height: calc(100vh - 48px); overflow-y: auto;
+    padding: 16px 0; border-right: 1px solid var(--line); background: #eceef0;
+  }
+  nav.toc a {
+    display: block; padding: 5px 18px; color: var(--muted); text-decoration: none;
+    font-size: 13.5px; border-left: 3px solid transparent;
+  }
+  nav.toc a:hover { color: var(--text); background: #e2e5e8; }
+  nav.toc a.active { color: var(--accent); border-left-color: var(--accent); background: #e2e9ec; font-weight: 600; }
+  nav.toc .num { display: inline-block; width: 26px; font-family: var(--mono); font-size: 12px; }
+  main { padding: 24px 36px 80px; min-width: 0; }
+
+  section.slide {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+    padding: 28px 34px 30px; margin-bottom: 22px; scroll-margin-top: 64px;
+  }
+  .slide-head { display: flex; align-items: baseline; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 10px; margin-bottom: 18px; }
+  .slide-head .no { font-family: var(--mono); color: #fff; background: var(--accent); padding: 0 8px; font-size: 13px; border-radius: 2px; }
+  .slide-head h2 { margin: 0; font-size: 22px; }
+  .slide-head .en { color: var(--muted); font-size: 13px; }
+  .slide-head .time { margin-left: auto; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  h3 { font-size: 16.5px; margin: 22px 0 8px; padding-left: 10px; border-left: 3px solid var(--accent); }
+  p { margin: 8px 0; }
+  .lead { font-size: 16px; color: #2c353d; }
+  .muted { color: var(--muted); font-size: 13.5px; }
+  code { font-family: var(--mono); font-size: 13px; background: #eef1f3; padding: 1px 5px; border-radius: 2px; color: #0a4f63; }
+  ul { padding-left: 22px; margin: 6px 0; }
+  li { margin: 3px 0; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 1000px) {
+    .wrap { grid-template-columns: 1fr; } nav.toc { display: none; }
+    .grid2, .grid3, .grid4 { grid-template-columns: 1fr; }
+    main { padding: 16px; }
+  }
+  .box { border: 1px solid var(--line); border-radius: 3px; padding: 12px 14px; background: #fafbfb; }
+  .box h4 { margin: 0 0 6px; font-size: 14.5px; }
+  .box.accent { border-left: 4px solid var(--accent); }
+  .box.warn { border-left: 4px solid var(--warn); background: var(--warn-weak); }
+  .box.bad { border-left: 4px solid var(--bad); background: var(--bad-weak); }
+  .box.ok { border-left: 4px solid var(--ok); background: var(--ok-weak); }
+  .callout { border: 1px solid #b7d3dc; background: var(--accent-weak); padding: 10px 14px; border-radius: 3px; margin: 12px 0; }
+  .callout b { color: var(--accent); }
+  .def { border-left: 4px solid var(--accent); background: #f7fafb; padding: 14px 18px; font-size: 17px; margin: 6px 0 16px; }
+  .def em { font-style: normal; color: var(--accent); font-weight: 700; border-bottom: 2px solid #9cc6d3; }
+
+  .tag { display: inline-block; font-size: 12px; padding: 0 7px; border-radius: 2px; border: 1px solid; line-height: 20px; margin-right: 4px; font-family: var(--mono); }
+  .tag.a { color: var(--accent); border-color: #9cc6d3; background: var(--accent-weak); }
+  .tag.w { color: var(--warn); border-color: #ecc58f; background: var(--warn-weak); }
+  .tag.r { color: var(--bad); border-color: #ecaaa3; background: var(--bad-weak); }
+  .tag.g { color: var(--ok); border-color: #a9d3ab; background: var(--ok-weak); }
+  .tag.n { color: var(--muted); border-color: var(--line); background: #f2f4f5; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 10px 0; }
+  th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: #edf0f2; font-weight: 600; white-space: nowrap; }
+  tr:nth-child(even) td { background: #fafbfb; }
+
+  pre {
+    background: var(--code-bg); color: #d6dde3; padding: 14px 16px; border-radius: 3px;
+    overflow-x: auto; font: 13px/1.6 var(--mono); margin: 10px 0; border-left: 3px solid var(--accent);
+  }
+  pre .c { color: #7d8b96; font-style: italic; }
+  pre .s { color: #a5d6a7; }
+  pre .k { color: #f0a868; }
+  pre .f { color: #82c7e0; }
+  .code-title { font-family: var(--mono); font-size: 12px; color: var(--muted); margin: 12px 0 -6px; }
+
+  figure { margin: 14px 0; }
+  figure svg { width: 100%; height: auto; display: block; background: #fbfcfc; border: 1px solid var(--line); border-radius: 3px; }
+  figcaption { font-size: 12.5px; color: var(--muted); text-align: center; margin-top: 6px; }
+  svg text { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+
+  section.slide.cover { background: #20262c; color: #e8ecef; border-color: #20262c; padding: 46px 40px; }
+  .cover h1 { font-size: 32px; margin: 6px 0 10px; letter-spacing: 1px; }
+  .cover .kicker { font-family: var(--mono); color: #7fc3d6; font-size: 13px; }
+  .cover p { color: #b9c3cb; max-width: 860px; }
+  .cover .meta { display: flex; gap: 26px; margin-top: 22px; flex-wrap: wrap; }
+  .cover .meta div { border-left: 2px solid var(--accent); padding-left: 10px; font-size: 13px; color: #9aa6b0; }
+  .cover .meta b { display: block; color: #fff; font-size: 14px; }
+
+  body.present nav.toc { display: none; }
+  body.present .wrap { grid-template-columns: 1fr; max-width: 1200px; }
+  body.present section.slide { display: none; min-height: calc(100vh - 110px); }
+  body.present section.slide.current { display: block; }
+  body.present main { padding-top: 18px; }
+  .pager { display: none; font-family: var(--mono); font-size: 13px; color: #9aa6b0; }
+  body.present .pager { display: inline; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4a5560"/>
+    </marker>
+    <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0b6e8a"/>
+    </marker>
+    <marker id="arrW" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
+  </defs>
+</svg>
+
+<div class="topbar">
+  <b>LangGraph</b><span class="sub">LangChain 智能体课程 · LangGraph 介绍</span>
+  <span class="spacer"></span>
+  <span class="pager" id="pager"></span>
+  <button id="btnPresent" title="快捷键 P；演示模式下 ← → 翻页，Esc 退出">演示模式 (P)</button>
+</div>
+
+<div class="wrap">
+<nav class="toc" id="toc"></nav>
+<main id="main">
+
+<!-- ================= 00 cover ================= -->
+<section class="slide cover" id="s0" data-title="开场：从链到图">
+  <div class="kicker">STATEFUL · LONG-RUNNING · LOW-LEVEL ORCHESTRATION</div>
+  <h1>LangGraph 介绍：当“链”不够用的时候</h1>
+  <figure style="margin-top:22px">
+    <svg viewBox="0 0 1000 150" style="background:#262d34;border-color:#38424b">
+      <text x="20" y="28" font-size="13" fill="#7fc3d6" font-weight="700">链 Chain：一条道走到底</text>
+      <g font-size="13" text-anchor="middle" fill="#e8ecef">
+        <rect x="20" y="42" width="100" height="34" rx="2" fill="#2f3840" stroke="#56616b"/><text x="70" y="64">输入</text>
+        <rect x="150" y="42" width="100" height="34" rx="2" fill="#2f3840" stroke="#56616b"/><text x="200" y="64">提示词</text>
+        <rect x="280" y="42" width="100" height="34" rx="2" fill="#2f3840" stroke="#56616b"/><text x="330" y="64">模型</text>
+        <rect x="410" y="42" width="100" height="34" rx="2" fill="#2f3840" stroke="#56616b"/><text x="460" y="64">解析器</text>
+      </g>
+      <g stroke="#9aa6b0" stroke-width="1.5">
+        <line x1="120" y1="59" x2="148" y2="59" marker-end="url(#arr)"/>
+        <line x1="250" y1="59" x2="278" y2="59" marker-end="url(#arr)"/>
+        <line x1="380" y1="59" x2="408" y2="59" marker-end="url(#arr)"/>
+      </g>
+      <text x="20" y="108" font-size="12.5" fill="#9aa6b0">不能回头、不能分岔、跑完即忘</text>
+
+      <text x="600" y="28" font-size="13" fill="#7fc3d6" font-weight="700">图 Graph：可以分支、可以循环</text>
+      <g font-size="13" text-anchor="middle" fill="#e8ecef">
+        <rect x="600" y="42" width="90" height="34" rx="2" fill="#2f3840" stroke="#56616b"/><text x="645" y="64">输入</text>
+        <rect x="730" y="42" width="90" height="34" rx="2" fill="#0b6e8a" stroke="#7fc3d6"/><text x="775" y="64">思考</text>
+        <rect x="730" y="104" width="90" height="34" rx="2" fill="#2f3840" stroke="#56616b"/><text x="775" y="126">行动</text>
+        <rect x="870" y="42" width="90" height="34" rx="2" fill="#2f3840" stroke="#56616b"/><text x="915" y="64">输出</text>
+      </g>
+      <g stroke="#9aa6b0" stroke-width="1.5" fill="none">
+        <line x1="690" y1="59" x2="728" y2="59" marker-end="url(#arr)"/>
+        <line x1="820" y1="59" x2="868" y2="59" marker-end="url(#arr)"/>
+        <path d="M760,76 L760,102" marker-end="url(#arr)"/>
+        <path d="M790,104 L790,78" marker-end="url(#arr)"/>
+      </g>
+      <text x="830" y="126" font-size="12.5" fill="#9aa6b0">观察结果，不满意再来一轮</text>
+    </svg>
+  </figure>
+
+  <div class="meta">
+    <div><b>是什么</b>定义与三个关键词</div>
+    <div><b>为什么</b>传统链的三个痛点</div>
+    <div><b>能做什么</b>四大核心能力</div>
+    <div><b>怎么理解</b>节点 · 边 · 循环 · State</div>
+    <div><b>怎么选</b>LangChain vs LangGraph</div>
+  </div>
+</section>
+
+<!-- ================= 01 definition ================= -->
+<section class="slide" id="s1" data-title="什么是 LangGraph">
+  <div class="slide-head"><span class="no">01</span><h2>什么是 LangGraph</h2><span class="en">Definition</span></div>
+  <div class="def">LangGraph 是一个用于构建、管理和部署<em>长期运行</em>、<em>具有状态</em>（stateful）的智能体的<em>低阶编排</em>框架与运行时。</div>
+
+  <div class="grid3">
+    <div class="box accent">
+      <h4><span class="tag a">关键词 1</span>长期运行 Long-running</h4>
+      跑的不是一次几秒钟的问答，而可能是<b>几分钟、几小时，甚至几天</b>的任务。
+    </div>
+    <div class="box accent">
+      <h4><span class="tag a">关键词 2</span>有状态 Stateful</h4>
+      智能体每走一步，都<b>记得之前发生了什么</b>，数据不会丢。
+    </div>
+    <div class="box accent">
+      <h4><span class="tag a">关键词 3</span>低阶编排 Low-level</h4>
+      不是把一切都封装好的高层框架，而是把<b>流程怎么走、在哪分支、在哪循环</b>的控制权交给你。灵活度高，可控性强。
+    </div>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 1000 280">
+      <rect x="20" y="20" width="960" height="44" rx="2" fill="#fff" stroke="#4a5560"/>
+      <text x="40" y="47" font-size="13" font-weight="700">你的智能体应用</text>
+      <text x="200" y="47" font-size="12.5" fill="#5b6670">客服 Agent / 研究 Agent / 代码 Agent / 多 Agent 协作 …</text>
+
+      <rect x="20" y="78" width="960" height="120" rx="2" fill="#e3f0f4" stroke="#0b6e8a" stroke-width="1.5"/>
+      <text x="40" y="102" font-size="14" font-weight="700" fill="#0b6e8a">LangGraph 编排框架 + 运行时</text>
+      <g font-size="13" text-anchor="middle">
+        <rect x="40" y="116" width="210" height="66" rx="2" fill="#fff" stroke="#0b6e8a"/>
+        <text x="145" y="142" font-weight="700">图结构 Graph</text><text x="145" y="164" font-size="12" fill="#5b6670">节点 · 边 · 条件分支 · 循环</text>
+        <rect x="270" y="116" width="210" height="66" rx="2" fill="#fff" stroke="#0b6e8a"/>
+        <text x="375" y="142" font-weight="700">共享状态 State</text><text x="375" y="164" font-size="12" fill="#5b6670">贯穿所有节点</text>
+        <rect x="500" y="116" width="210" height="66" rx="2" fill="#fff" stroke="#0b6e8a"/>
+        <text x="605" y="142" font-weight="700">检查点 Checkpointer</text><text x="605" y="164" font-size="12" fill="#5b6670">每步自动保存 · 断点恢复</text>
+        <rect x="730" y="116" width="230" height="66" rx="2" fill="#fff" stroke="#0b6e8a"/>
+        <text x="845" y="142" font-weight="700">人工介入 Interrupt</text><text x="845" y="164" font-size="12" fill="#5b6670">任意节点暂停 · 审批后继续</text>
+      </g>
+
+      <rect x="20" y="212" width="470" height="50" rx="2" fill="#fafbfb" stroke="#4a5560"/>
+      <text x="40" y="242" font-size="13" font-weight="700">LangChain</text>
+      <text x="130" y="242" font-size="12.5" fill="#5b6670">模型 · 提示词 · 工具 · 链（节点里的“积木”）</text>
+      <rect x="510" y="212" width="470" height="50" rx="2" fill="#fafbfb" stroke="#4a5560"/>
+      <text x="530" y="242" font-size="13" font-weight="700">LangSmith</text>
+      <text x="620" y="242" font-size="12.5" fill="#5b6670">追踪 · 监控 · 评估（看它跑得好不好）</text>
+    </svg>
+    <figcaption>图 1-1　LangGraph 在智能体技术栈中的位置</figcaption>
+  </figure>
+</section>
+
+<!-- ================= 02 background ================= -->
+<section class="slide" id="s2" data-title="产生的背景">
+  <div class="slide-head"><span class="no">02</span><h2>为什么会出现 LangGraph</h2><span class="en">Why LangGraph</span></div>
+  <p class="lead">大模型应用从“一问一答”演进到<b>自主规划、调用工具、多步推理</b>的智能体，传统的线性链和简单路由暴露出三个明显的问题。</p>
+
+  <figure>
+    <svg viewBox="0 0 1000 110">
+      <g font-size="13" text-anchor="middle">
+        <rect x="20" y="30" width="220" height="50" rx="2" fill="#fafbfb" stroke="#4a5560"/>
+        <text x="130" y="52" font-weight="700">一问一答</text><text x="130" y="70" font-size="12" fill="#5b6670">Prompt → LLM → 回答</text>
+        <rect x="290" y="30" width="220" height="50" rx="2" fill="#fafbfb" stroke="#4a5560"/>
+        <text x="400" y="52" font-weight="700">线性链 / 简单路由</text><text x="400" y="70" font-size="12" fill="#5b6670">固定步骤，有限分支</text>
+        <rect x="560" y="30" width="420" height="50" rx="2" fill="#e3f0f4" stroke="#0b6e8a" stroke-width="1.5"/>
+        <text x="770" y="52" font-weight="700" fill="#0b6e8a">智能体 Agent</text><text x="770" y="70" font-size="12" fill="#5b6670">自主规划 · 调用工具 · 多步推理 · 失败重试</text>
+      </g>
+      <line x1="240" y1="55" x2="288" y2="55" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="510" y1="55" x2="558" y2="55" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="535" y="100" font-size="12" text-anchor="middle" fill="#b42318">← 在这里，链开始不够用</text>
+    </svg>
+  </figure>
+
+  <table>
+    <tr><th style="width:56px">痛点</th><th style="width:200px">问题</th><th>具体表现</th></tr>
+    <tr>
+      <td><span class="tag r">01</span></td>
+      <td><b>缺乏循环和状态管理</b></td>
+      <td>ReAct 的“思考 → 行动 → 观察”本质上是一个<b>循环</b>：想一下、做一下、看结果，不满意再来一轮。而传统链从头走到尾，很难安全、持久地维护每一轮的执行状态。</td>
+    </tr>
+    <tr>
+      <td><span class="tag r">02</span></td>
+      <td><b>确定性和灵活性难以平衡</b></td>
+      <td>全交给大模型决定下一步 → 黑盒，可能陷入死循环、产生幻觉；全部写死 → 失去智能体的意义。开发者需要的是：<b>该写死的写死，该让模型发挥的让它发挥，两者放在同一套流程里</b>。</td>
+    </tr>
+    <tr>
+      <td><span class="tag r">03</span></td>
+      <td><b>生产环境需要持久化和人工介入</b></td>
+      <td>智能体可能要跑好几个小时，中间服务可能重启；在付款、发邮件、删数据之前，还得停下来等人审批。这要求底层具备原生的<b>持久化和检查点（Checkpointing）</b>能力。</td>
+    </tr>
+  </table>
+
+  <div class="callout"><b>LangGraph 就是为了解决这三个问题而生的。</b></div>
+</section>
+
+<!-- ================= 03 advantages ================= -->
+<section class="slide" id="s3" data-title="四大优势">
+  <div class="slide-head"><span class="no">03</span><h2>LangGraph 的四大核心能力</h2><span class="en">Key Capabilities</span></div>
+  <div class="grid2">
+    <div class="box accent">
+      <h4><span class="tag a">能力 1</span>细粒度的图结构编排</h4>
+      显式定义<b>节点（Nodes）</b>和<b>边（Edges）</b>，搭出包含循环、条件分支、多智能体协同的图结构。<b>流程长什么样，你说了算。</b>
+      <p class="muted">解决痛点 01：缺乏循环</p>
+    </div>
+    <div class="box accent">
+      <h4><span class="tag a">能力 2</span>混合确定性步骤和智能步骤</h4>
+      同一张图里，一个节点是普通业务代码（查数据库、做校验），另一个节点交给大模型做决策。<b>核心流程可控，边缘逻辑灵活。</b>
+      <p class="muted">解决痛点 02：确定性 vs 灵活性</p>
+    </div>
+    <div class="box accent">
+      <h4><span class="tag a">能力 3</span>原生持久化和状态恢复</h4>
+      内置检查点机制，每一步状态自动保存。程序挂了从断点恢复；调试时可回到任意一步查看当时的状态，甚至改了重跑——即<b>“时间旅行”（Time Travel）调试</b>。
+      <p class="muted">解决痛点 01 + 03：状态管理与持久化</p>
+    </div>
+    <div class="box accent">
+      <h4><span class="tag a">能力 4</span>内置人工介入 Human-in-the-loop</h4>
+      图可在<b>任意节点暂停</b>，人来检查、修改状态；审批通过再继续，不通过就回滚。生产环境里非常关键。
+      <p class="muted">解决痛点 03：人工介入</p>
+    </div>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 1000 150">
+      <text x="20" y="22" font-size="13" font-weight="700">“时间旅行”示意：每个节点执行后都留下一个检查点</text>
+      <line x1="40" y1="80" x2="960" y2="80" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <g font-size="12" text-anchor="middle">
+        <circle cx="120" cy="80" r="9" fill="#0b6e8a"/><text x="120" y="60">checkpoint 1</text><text x="120" y="108" fill="#5b6670">输入</text>
+        <circle cx="300" cy="80" r="9" fill="#0b6e8a"/><text x="300" y="60">checkpoint 2</text><text x="300" y="108" fill="#5b6670">思考</text>
+        <circle cx="480" cy="80" r="9" fill="#b45309"/><text x="480" y="60" fill="#b45309" font-weight="700">checkpoint 3</text><text x="480" y="108" fill="#5b6670">调用工具</text>
+        <circle cx="660" cy="80" r="9" fill="#b42318"/><text x="660" y="60">checkpoint 4</text><text x="660" y="108" fill="#b42318">服务重启 ✕</text>
+      </g>
+      <path d="M660,118 C620,145 520,145 486,96" fill="none" stroke="#b45309" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#arrW)"/>
+      <text x="720" y="140" font-size="12.5" fill="#b45309">从 checkpoint 3 恢复 / 修改状态后重跑</text>
+    </svg>
+    <figcaption>图 3-1　检查点让长任务可以断点续跑、回溯调试</figcaption>
+  </figure>
+</section>
+
+<!-- ================= 04 graph, nodes, edges ================= -->
+<section class="slide" id="s4" data-title="关键概念：循环图·节点·边">
+  <div class="slide-head"><span class="no">04</span><h2>关键概念（上）：循环图、节点与边</h2><span class="en">Cyclical Graphs · Nodes · Edges</span></div>
+  <figure>
+    <svg viewBox="0 0 1000 300">
+      <g font-size="14" text-anchor="middle">
+        <rect x="40" y="120" width="100" height="44" rx="22" fill="#20262c"/><text x="90" y="147" fill="#fff" font-family="Consolas, monospace">START</text>
+        <rect x="260" y="112" width="160" height="60" rx="2" fill="#e3f0f4" stroke="#0b6e8a" stroke-width="1.5"/>
+        <text x="340" y="138" font-weight="700">agent 节点</text><text x="340" y="158" font-size="12" fill="#5b6670">调用大模型：思考</text>
+        <rect x="560" y="212" width="160" height="60" rx="2" fill="#fafbfb" stroke="#4a5560" stroke-width="1.5"/>
+        <text x="640" y="238" font-weight="700">tools 节点</text><text x="640" y="258" font-size="12" fill="#5b6670">执行工具：行动 + 观察</text>
+        <rect x="840" y="120" width="100" height="44" rx="22" fill="#20262c"/><text x="890" y="147" fill="#fff" font-family="Consolas, monospace">END</text>
+        <polygon points="640,106 690,142 640,178 590,142" fill="#fdf1e3" stroke="#b45309" stroke-width="1.5"/>
+        <text x="640" y="147" font-size="12" fill="#b45309" font-weight="700">要调工具？</text>
+      </g>
+      <line x1="140" y1="142" x2="258" y2="142" stroke="#4a5560" stroke-width="1.8" marker-end="url(#arr)"/>
+      <text x="199" y="132" font-size="12" text-anchor="middle" fill="#5b6670">基础边</text>
+      <line x1="420" y1="142" x2="588" y2="142" stroke="#b45309" stroke-width="1.8" marker-end="url(#arrW)"/>
+      <line x1="640" y1="178" x2="640" y2="210" stroke="#b45309" stroke-width="1.8" marker-end="url(#arrW)"/>
+      <text x="652" y="198" font-size="12" fill="#b45309">是</text>
+      <line x1="690" y1="142" x2="838" y2="142" stroke="#b45309" stroke-width="1.8" marker-end="url(#arrW)"/>
+      <text x="764" y="132" font-size="12" text-anchor="middle" fill="#b45309">否 → 结束</text>
+      <text x="505" y="132" font-size="12" text-anchor="middle" fill="#b45309">条件边</text>
+      <path d="M560,242 L340,242 L340,174" fill="none" stroke="#0b6e8a" stroke-width="2" marker-end="url(#arrA)"/>
+      <text x="450" y="262" font-size="12.5" text-anchor="middle" fill="#0b6e8a" font-weight="700">基础边：回到 agent → 形成循环</text>
+
+      <rect x="230" y="22" width="540" height="52" rx="2" fill="#e7f3e8" stroke="#2f7d32" stroke-dasharray="5 3"/>
+      <text x="500" y="44" font-size="13" text-anchor="middle" font-weight="700" fill="#2f7d32">State（共享状态）：messages、中间结果 …</text>
+      <text x="500" y="63" font-size="12" text-anchor="middle" fill="#5b6670">每个节点读取它 → 更新它 → 交给下一个节点</text>
+    </svg>
+    <figcaption>图 4-1　一个最小的 ReAct 智能体图：节点做事，边决定下一步，State 贯穿全程</figcaption>
+  </figure>
+
+  <div class="grid3">
+    <div class="box accent">
+      <h4>① 循环图 Cyclical Graphs</h4>
+      和线性工作流不同，流程允许<b>绕回去、多次交互</b>。工具结果不对？回到“思考”节点再来一次。
+      <p class="muted">多轮迭代、依据动态输入做判断的任务，循环图是刚需。</p>
+    </div>
+    <div class="box accent">
+      <h4>② 节点 Nodes</h4>
+      工作流里的一个<b>独立单元</b>：可以是一次大模型调用、一个智能体，也可以是一个普通 Python 函数。每个节点负责任务中的一个环节。
+    </div>
+    <div class="box accent">
+      <h4>③ 边 Edges</h4>
+      定义节点之间怎么连接，决定数据往哪流、流程往哪走。
+      <ul>
+        <li><span class="tag n">基础边</span>固定直连：A 做完一定去 B</li>
+        <li><span class="tag w">条件边</span>按规则分流：要调工具去 tools，否则结束</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout"><b>记住一句话：</b>节点负责“做事”，边负责“决定下一步做什么”。</div>
+</section>
+
+<!-- ================= 05 state & integration ================= -->
+<section class="slide" id="s5" data-title="关键概念：State·生态集成">
+  <div class="slide-head"><span class="no">05</span><h2>关键概念（下）：状态管理与生态集成</h2><span class="en">State · LangChain · LangSmith</span></div>
+
+  <div class="grid2">
+    <div>
+      <h3>④ 状态管理 State</h3>
+      <p>LangGraph 在所有节点之间维护一个<b>共享的、持久化的</b>状态对象。</p>
+      <ul>
+        <li>每个节点<b>读取</b> State → 做事 → <b>更新</b> State → 交给下一个节点</li>
+        <li>状态持久化 → 应用可以<b>随时暂停、恢复</b>，不丢失上下文</li>
+        <li>长周期任务、需要人工介入的场景，都依赖这一点</li>
+      </ul>
+      <figure>
+        <svg viewBox="0 0 460 170">
+          <rect x="130" y="10" width="200" height="54" rx="2" fill="#e7f3e8" stroke="#2f7d32" stroke-width="1.5"/>
+          <text x="230" y="33" font-size="13" text-anchor="middle" font-weight="700" fill="#2f7d32">State</text>
+          <text x="230" y="52" font-size="11.5" text-anchor="middle" fill="#5b6670" font-family="Consolas, monospace">{ messages, … }</text>
+          <g font-size="12.5" text-anchor="middle">
+            <rect x="20" y="110" width="110" height="40" rx="2" fill="#fff" stroke="#4a5560"/><text x="75" y="135">节点 A</text>
+            <rect x="175" y="110" width="110" height="40" rx="2" fill="#fff" stroke="#4a5560"/><text x="230" y="135">节点 B</text>
+            <rect x="330" y="110" width="110" height="40" rx="2" fill="#fff" stroke="#4a5560"/><text x="385" y="135">节点 C</text>
+          </g>
+          <g stroke="#2f7d32" stroke-width="1.4" fill="none">
+            <path d="M150,64 L90,108" marker-end="url(#arr)"/>
+            <path d="M230,64 L230,108" marker-end="url(#arr)"/>
+            <path d="M310,64 L370,108" marker-end="url(#arr)"/>
+          </g>
+          <line x1="130" y1="130" x2="173" y2="130" stroke="#4a5560" stroke-width="1.4" marker-end="url(#arr)"/>
+          <line x1="285" y1="130" x2="328" y2="130" stroke="#4a5560" stroke-width="1.4" marker-end="url(#arr)"/>
+          <text x="230" y="90" font-size="11" text-anchor="middle" fill="#5b6670">读取 / 更新</text>
+        </svg>
+      </figure>
+    </div>
+    <div>
+      <h3>⑤ 与 LangChain、LangSmith 的集成</h3>
+      <p>LangGraph 不是另起炉灶：它构建在 LangChain 之上，之前学过的<b>模型、提示词、工具、链</b>都能直接放进节点里复用；再配合 LangSmith 对运行过程做<b>追踪、监控和性能优化</b>。</p>
+      <table>
+        <tr><th>组件</th><th>角色</th><th>一句话</th></tr>
+        <tr><td><b>LangChain</b></td><td><span class="tag n">积木</span></td><td>提供模型、提示词、工具、链</td></tr>
+        <tr><td><b>LangGraph</b></td><td><span class="tag a">结构</span></td><td>把积木搭成有循环、分支、状态的图</td></tr>
+        <tr><td><b>LangSmith</b></td><td><span class="tag g">观测</span></td><td>看它跑得好不好：追踪、监控、评估</td></tr>
+      </table>
+      <div class="callout"><b>关系：</b>LangChain 提供积木，LangGraph 负责搭结构，LangSmith 负责看它跑得好不好。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 06 compare ================= -->
+<section class="slide" id="s6" data-title="LangChain vs LangGraph">
+  <div class="slide-head"><span class="no">06</span><h2>LangChain vs LangGraph</h2><span class="en">Chain vs Graph</span></div>
+
+  <table>
+    <tr><th style="width:110px">维度</th><th>LangChain · 线性链架构</th><th>LangGraph · 动态图架构</th></tr>
+    <tr><td><b>核心结构</b></td><td>线性、单向的执行流程，步骤之间顺序依赖</td><td>非线性的有向图，用节点和边表达复杂逻辑关系</td></tr>
+    <tr><td><b>执行路径</b></td><td>路径基本固定或仅有有限分支，复杂跳转比较吃力</td><td>动态路由，天然支持循环、条件分支和多 Agent 协作</td></tr>
+    <tr><td><b>状态管理</b></td><td>隐式管理，靠 Memory 模块在步骤间手动传递上下文</td><td>全局共享的 State 对象，显式、统一地管理全流程状态</td></tr>
+    <tr><td><b>适用场景</b></td><td>逻辑简单、步骤固定的短周期任务，上手门槛低</td><td>长周期、复杂决策、多步骤任务，可追溯性和可控性强</td></tr>
+  </table>
+
+  <h3>怎么选</h3>
+  <div class="grid2">
+    <div class="box">
+      <h4><span class="tag n">用链就够</span>LangChain</h4>
+      <ul>
+        <li>一次性问答、摘要、翻译、信息抽取</li>
+        <li>步骤固定：提示词 → 模型 → 解析</li>
+        <li>不需要回头、不需要暂停等人</li>
+      </ul>
+    </div>
+    <div class="box accent">
+      <h4><span class="tag a">请出图</span>LangGraph</h4>
+      <ul>
+        <li>需要<b>循环</b>：反思、重试、ReAct 多轮工具调用</li>
+        <li>需要<b>分支</b>：按模型判断或业务规则路由</li>
+        <li>需要<b>持久化 / 人工介入</b>：长任务、审批节点</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout"><b>两者不是替代关系，而是互补关系。</b>简单任务用链就够了，没必要上图；需要循环、分支、持久化和人工介入时，再请出 LangGraph。</div>
+</section>
+
+<!-- ================= 07 summary ================= -->
+<section class="slide" id="s7" data-title="总结与预告">
+  <div class="slide-head"><span class="no">07</span><h2>本节要点回顾</h2><span class="en">Recap</span></div>
+
+  <table>
+    <tr><th style="width:150px">要点</th><th>一句话</th></tr>
+    <tr><td><b>定位</b></td><td>面向<b>有状态、长期运行</b>智能体的低阶编排框架与运行时</td></tr>
+    <tr><td><b>节点 Node</b></td><td>做事：LLM 调用、智能体或普通函数</td></tr>
+    <tr><td><b>边 Edge</b></td><td>控制流向：基础边固定直连，条件边按规则分流</td></tr>
+    <tr><td><b>状态 State</b></td><td>贯穿全程的共享状态，每个节点读取并更新</td></tr>
+    <tr><td><b>原生能力</b></td><td>循环、检查点持久化（时间旅行）、人工介入</td></tr>
+    <tr><td><b>生态</b></td><td>复用 LangChain 积木，用 LangSmith 观测</td></tr>
+  </table>
+
+  <h3>下节预告：动手搭建第一张图</h3>
+  <div class="code-title">preview.py</div>
+<pre class="py">from langgraph.graph import StateGraph, MessagesState, START, END
+
+builder = StateGraph(MessagesState)          # State：共享状态
+builder.add_node("agent", call_model)        # 节点：做事
+builder.add_node("tools", run_tools)
+builder.add_edge(START, "agent")             # 基础边：固定直连
+builder.add_conditional_edges("agent", should_continue, ["tools", END])  # 条件边：按规则分流
+builder.add_edge("tools", "agent")           # 回到 agent，形成循环
+
+graph = builder.compile()</pre>
+</section>
+
+</main>
+</div>
+
+<script>
+(() => {
+  const slides = [...document.querySelectorAll('section.slide')];
+  const toc = document.getElementById('toc');
+
+  slides.forEach((s, i) => {
+    const a = document.createElement('a');
+    a.href = '#' + s.id;
+    a.innerHTML = `<span class="num">${String(i).padStart(2, '0')}</span>${s.dataset.title}`;
+    toc.appendChild(a);
+  });
+  const links = [...toc.querySelectorAll('a')];
+  const io = new IntersectionObserver(entries => entries.forEach(e => {
+    if (e.isIntersecting) links.forEach(l => l.classList.toggle('active', l.hash === '#' + e.target.id));
+  }), { rootMargin: '-30% 0px -60% 0px' });
+  slides.forEach(s => io.observe(s));
+
+  const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const re = /(#[^\n]*)|("""[\s\S]*?"""|f?"[^"\n]*"|'[^'\n]*')|\b(from|import|def|class|return|for|in|if|elif|else|lambda|with|as|None|True|False|print)\b|\b([A-Za-z_]\w*)(?=\()/g;
+  document.querySelectorAll('pre.py').forEach(pre => {
+    const src = pre.textContent;
+    let out = '', last = 0, m;
+    while ((m = re.exec(src))) {
+      out += esc(src.slice(last, m.index));
+      const cls = m[1] ? 'c' : m[2] ? 's' : m[3] ? 'k' : 'f';
+      out += `<span class="${cls}">${esc(m[0])}</span>`;
+      last = re.lastIndex;
+    }
+    pre.innerHTML = out + esc(src.slice(last));
+  });
+
+  const btn = document.getElementById('btnPresent');
+  const pager = document.getElementById('pager');
+  let cur = 0;
+  const show = i => {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, j) => s.classList.toggle('current', j === cur));
+    pager.textContent = `${cur + 1} / ${slides.length}`;
+    window.scrollTo(0, 0);
+  };
+  const toggle = () => {
+    const on = document.body.classList.toggle('present');
+    btn.textContent = on ? '退出演示 (Esc)' : '演示模式 (P)';
+    if (on) {
+      const y = window.scrollY + 120;
+      const idx = slides.findLastIndex(s => s.offsetTop <= y);
+      show(idx < 0 ? 0 : idx);
+    } else {
+      slides[cur].scrollIntoView();
+    }
+  };
+  btn.onclick = toggle;
+  document.addEventListener('keydown', e => {
+    const present = document.body.classList.contains('present');
+    if (e.key === 'p' || e.key === 'P') toggle();
+    else if (present && e.key === 'Escape') toggle();
+    else if (present && ['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); show(cur + 1); }
+    else if (present && ['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); show(cur - 1); }
+  });
+})();
+</script>
+</body>
+</html>

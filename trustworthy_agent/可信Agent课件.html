@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>如何让用户信任你的 AI Agent：可解释性 · 透明度 · 反馈循环</title>
+<style>
+  :root {
+    --bg: #f4f5f6;
+    --panel: #ffffff;
+    --text: #1d2329;
+    --muted: #5b6670;
+    --line: #d3d8dd;
+    --accent: #0b6e8a;
+    --accent-weak: #e3f0f4;
+    --warn: #b45309;
+    --warn-weak: #fdf1e3;
+    --bad: #b42318;
+    --bad-weak: #fbe9e7;
+    --ok: #2f7d32;
+    --ok-weak: #e7f3e8;
+    --code-bg: #1e2329;
+    --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.7 -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  }
+  .topbar {
+    position: sticky; top: 0; z-index: 20; height: 48px;
+    display: flex; align-items: center; gap: 16px; padding: 0 20px;
+    background: #20262c; color: #e8ecef; border-bottom: 3px solid var(--accent);
+  }
+  .topbar b { font-size: 15px; letter-spacing: .5px; }
+  .topbar .sub { color: #9aa6b0; font-size: 13px; }
+  .topbar .spacer { flex: 1; }
+  .topbar button {
+    background: transparent; color: #e8ecef; border: 1px solid #56616b;
+    padding: 4px 12px; border-radius: 3px; cursor: pointer; font-size: 13px;
+  }
+  .topbar button:hover { border-color: var(--accent); color: #fff; }
+  .wrap { display: grid; grid-template-columns: 240px 1fr; max-width: 1360px; margin: 0 auto; }
+  nav.toc {
+    position: sticky; top: 48px; height: calc(100vh - 48px); overflow-y: auto;
+    padding: 16px 0; border-right: 1px solid var(--line); background: #eceef0;
+  }
+  nav.toc a {
+    display: block; padding: 5px 18px; color: var(--muted); text-decoration: none;
+    font-size: 13.5px; border-left: 3px solid transparent;
+  }
+  nav.toc a:hover { color: var(--text); background: #e2e5e8; }
+  nav.toc a.active { color: var(--accent); border-left-color: var(--accent); background: #e2e9ec; font-weight: 600; }
+  nav.toc .num { display: inline-block; width: 26px; font-family: var(--mono); font-size: 12px; }
+  main { padding: 24px 36px 80px; min-width: 0; }
+
+  section.slide {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+    padding: 28px 34px 30px; margin-bottom: 22px; scroll-margin-top: 64px;
+  }
+  .slide-head { display: flex; align-items: baseline; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 10px; margin-bottom: 18px; }
+  .slide-head .no { font-family: var(--mono); color: #fff; background: var(--accent); padding: 0 8px; font-size: 13px; border-radius: 2px; }
+  .slide-head h2 { margin: 0; font-size: 22px; }
+  .slide-head .en { color: var(--muted); font-size: 13px; }
+  h3 { font-size: 16.5px; margin: 22px 0 8px; padding-left: 10px; border-left: 3px solid var(--accent); }
+  p { margin: 8px 0; }
+  .lead { font-size: 16px; color: #2c353d; }
+  .muted { color: var(--muted); font-size: 13.5px; }
+  code { font-family: var(--mono); font-size: 13px; background: #eef1f3; padding: 1px 5px; border-radius: 2px; color: #0a4f63; }
+  ul { padding-left: 22px; margin: 6px 0; }
+  li { margin: 3px 0; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 1000px) {
+    .wrap { grid-template-columns: 1fr; } nav.toc { display: none; }
+    .grid2, .grid3 { grid-template-columns: 1fr; }
+    main { padding: 16px; }
+  }
+  .box { border: 1px solid var(--line); border-radius: 3px; padding: 12px 14px; background: #fafbfb; }
+  .box h4 { margin: 0 0 6px; font-size: 14.5px; }
+  .box.accent { border-left: 4px solid var(--accent); }
+  .box.warn { border-left: 4px solid var(--warn); background: var(--warn-weak); }
+  .box.bad { border-left: 4px solid var(--bad); background: var(--bad-weak); }
+  .box.ok { border-left: 4px solid var(--ok); background: var(--ok-weak); }
+  .callout { border: 1px solid #b7d3dc; background: var(--accent-weak); padding: 10px 14px; border-radius: 3px; margin: 12px 0; }
+  .callout b { color: var(--accent); }
+
+  .tag { display: inline-block; font-size: 12px; padding: 0 7px; border-radius: 2px; border: 1px solid; line-height: 20px; margin-right: 4px; font-family: var(--mono); }
+  .tag.a { color: var(--accent); border-color: #9cc6d3; background: var(--accent-weak); }
+  .tag.w { color: var(--warn); border-color: #ecc58f; background: var(--warn-weak); }
+  .tag.r { color: var(--bad); border-color: #ecaaa3; background: var(--bad-weak); }
+  .tag.g { color: var(--ok); border-color: #a9d3ab; background: var(--ok-weak); }
+  .tag.n { color: var(--muted); border-color: var(--line); background: #f2f4f5; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 10px 0; }
+  th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: #edf0f2; font-weight: 600; white-space: nowrap; }
+  tr:nth-child(even) td { background: #fafbfb; }
+  td.c-ok { background: var(--ok-weak) !important; }
+  td.c-w { background: var(--warn-weak) !important; }
+  td.c-r { background: var(--bad-weak) !important; }
+
+  pre {
+    background: var(--code-bg); color: #d6dde3; padding: 14px 16px; border-radius: 3px;
+    overflow-x: auto; font: 13px/1.6 var(--mono); margin: 10px 0; border-left: 3px solid var(--accent);
+  }
+  pre .c { color: #7d8b96; font-style: italic; }
+  pre .s { color: #a5d6a7; }
+  pre .k { color: #f0a868; }
+  pre .f { color: #82c7e0; }
+  .code-title { font-family: var(--mono); font-size: 12px; color: var(--muted); margin: 12px 0 -6px; }
+
+  figure { margin: 14px 0; }
+  figure svg { width: 100%; height: auto; display: block; background: #fbfcfc; border: 1px solid var(--line); border-radius: 3px; }
+  figcaption { font-size: 12.5px; color: var(--muted); text-align: center; margin-top: 6px; }
+  svg text { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+
+  /* UI mock：模拟 Agent 产品界面 */
+  .mock { border: 1px solid #aeb6bd; border-radius: 3px; background: #fff; font-size: 13.5px; }
+  .mock-bar { display: flex; align-items: center; gap: 10px; padding: 6px 12px; background: #edf0f2; border-bottom: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+  .mock-bar b { color: var(--text); }
+  .mock-body { padding: 12px 14px; }
+  .mock-row { display: grid; grid-template-columns: 92px 1fr; gap: 10px; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+  .mock-row:last-child { border-bottom: 0; }
+  .mock-row .k { color: var(--muted); font-size: 12.5px; }
+  .mock-btns { display: flex; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); background: #fafbfb; }
+  .mock-btns span { border: 1px solid #aeb6bd; padding: 2px 12px; border-radius: 2px; font-size: 12.5px; background: #fff; }
+  .mock-btns span.pri { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .mock-btns span.dng { color: var(--bad); border-color: #ecaaa3; }
+  .log { font-family: var(--mono); font-size: 12.5px; }
+  .log div { display: grid; grid-template-columns: 70px 74px 1fr; gap: 8px; padding: 3px 0; border-bottom: 1px dotted var(--line); }
+  .log .t { color: var(--muted); }
+  sup.ref { color: var(--accent); font-family: var(--mono); font-size: 11px; }
+
+  section.slide.cover { background: #20262c; color: #e8ecef; border-color: #20262c; padding: 46px 40px; }
+  .cover h1 { font-size: 32px; margin: 6px 0 10px; letter-spacing: 1px; }
+  .cover .kicker { font-family: var(--mono); color: #7fc3d6; font-size: 13px; }
+  .cover p { color: #b9c3cb; max-width: 860px; }
+  .cover .meta { display: flex; gap: 26px; margin-top: 22px; flex-wrap: wrap; }
+  .cover .meta div { border-left: 2px solid var(--accent); padding-left: 10px; font-size: 13px; color: #9aa6b0; }
+  .cover .meta b { display: block; color: #fff; font-size: 14px; }
+
+  .quiz li { margin-bottom: 8px; }
+  details { border: 1px solid var(--line); border-radius: 3px; padding: 8px 12px; margin: 8px 0; background: #fafbfb; }
+  details summary { cursor: pointer; font-weight: 600; }
+
+  body.present nav.toc { display: none; }
+  body.present .wrap { grid-template-columns: 1fr; max-width: 1200px; }
+  body.present section.slide { display: none; min-height: calc(100vh - 110px); }
+  body.present section.slide.current { display: block; }
+  body.present main { padding-top: 18px; }
+  .pager { display: none; font-family: var(--mono); font-size: 13px; color: #9aa6b0; }
+  body.present .pager { display: inline; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4a5560"/>
+    </marker>
+    <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0b6e8a"/>
+    </marker>
+    <pattern id="hatchR" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="6" height="6" fill="#fbe9e7"/><line x1="0" y1="0" x2="0" y2="6" stroke="#eec2bc" stroke-width="2"/>
+    </pattern>
+    <pattern id="hatchW" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+      <rect width="6" height="6" fill="#fdf1e3"/><line x1="0" y1="0" x2="0" y2="6" stroke="#f1d5ad" stroke-width="2"/>
+    </pattern>
+  </defs>
+</svg>
+
+<div class="topbar">
+  <b>Trustworthy Agent</b><span class="sub">LangChain 智能体课程 · 如何让用户信任你的 AI Agent</span>
+  <span class="spacer"></span>
+  <span class="pager" id="pager"></span>
+  <button id="btnPresent" title="快捷键 P；演示模式下 ← → 翻页，Esc 退出">演示模式 (P)</button>
+</div>
+
+<div class="wrap">
+<nav class="toc" id="toc"></nav>
+<main id="main">
+
+<!-- ================= 00 cover ================= -->
+<section class="slide cover" id="s0" data-title="封面">
+  <div class="kicker">EXPLAINABILITY · TRANSPARENCY · FEEDBACK LOOP</div>
+  <h1>如何让用户信任你的 AI Agent？</h1>
+  <p>Agent 能调用工具、修改数据、发送邮件、花真金白银。能力越强，用户越要问一句：<b style="color:#fff">“我凭什么把这件事交给它？”</b><br>
+  这节课不讲怎么让 Agent 更聪明，而讲怎么让用户<b style="color:#fff">敢用、会用、愿意一直用</b>——用三根支柱把“黑盒”变成“玻璃盒”，再把“玻璃盒”变成“驾驶舱”。</p>
+  <div class="meta">
+    <div><b>可解释性 Explainability</b>看得清：它为什么这么做</div>
+    <div><b>透明度 Transparency</b>看得全：它能做什么、正在做什么</div>
+    <div><b>反馈循环 Feedback Loop</b>管得住：错了我能改、改了它能学</div>
+    <div><b>动手实践</b><code style="background:#2c343b;color:#a5d6a7">create_agent</code> + Middleware + LangSmith</div>
+  </div>
+</section>
+
+<!-- ================= 01 trust gap ================= -->
+<section class="slide" id="s1" data-title="信任鸿沟">
+  <div class="slide-head"><span class="no">01</span><h2>Agent 落地的最后一公里：信任</h2><span class="en">Capability ≠ Trust</span></div>
+  <p class="lead">Chatbot 说错一句话，用户顶多一笑了之；Agent 做错一件事，可能是<b>退错一笔款、删错一张表、发错一封邮件</b>。Agent 从“说”走向“做”，信任就从“锦上添花”变成了“准入门槛”。</p>
+
+  <figure>
+    <svg viewBox="0 0 1000 330">
+      <polygon points="90,290 90,30 530,30" fill="url(#hatchR)"/>
+      <polygon points="90,290 530,290 530,30" fill="url(#hatchW)"/>
+      <line x1="90" y1="290" x2="545" y2="290" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="90" y1="290" x2="90" y2="18" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="530" y="314" font-size="13" text-anchor="end" fill="#5b6670">Agent 的实际可靠度 →</text>
+      <text x="80" y="160" font-size="13" text-anchor="middle" fill="#5b6670" transform="rotate(-90 70 160)">用户的信任程度 →</text>
+      <line x1="90" y1="290" x2="530" y2="30" stroke="#0b6e8a" stroke-width="3"/>
+      <text x="380" y="112" font-size="14" font-weight="700" fill="#0b6e8a" transform="rotate(-30.6 380 112)">校准的信任 Calibrated Trust</text>
+      <text x="170" y="80" font-size="15" font-weight="700" fill="#b42318">过度信任</text>
+      <text x="170" y="100" font-size="12.5" fill="#b42318">信任 &gt; 能力：盲从、不复核</text>
+      <text x="360" y="230" font-size="15" font-weight="700" fill="#b45309">信任不足</text>
+      <text x="360" y="250" font-size="12.5" fill="#b45309">信任 &lt; 能力：弃用、重复劳动</text>
+
+      <rect x="590" y="30" width="390" height="78" rx="3" fill="#fbe9e7" stroke="#b42318"/>
+      <text x="606" y="56" font-size="14" font-weight="700" fill="#b42318">过度信任的代价：事故</text>
+      <text x="606" y="78" font-size="12.5" fill="#1d2329">用户以为 Agent “肯定对”，把幻觉当事实、</text>
+      <text x="606" y="96" font-size="12.5" fill="#1d2329">把越权操作当常规 → 一次事故就彻底失去用户</text>
+      <rect x="590" y="122" width="390" height="78" rx="3" fill="#fdf1e3" stroke="#b45309"/>
+      <text x="606" y="148" font-size="14" font-weight="700" fill="#b45309">信任不足的代价：没人用</text>
+      <text x="606" y="170" font-size="12.5" fill="#1d2329">每个结果都要人工重做一遍，Agent 省下的时间</text>
+      <text x="606" y="188" font-size="12.5" fill="#1d2329">全被“复核成本”吃掉 → 上线即闲置</text>
+      <rect x="590" y="214" width="390" height="78" rx="3" fill="#e3f0f4" stroke="#0b6e8a"/>
+      <text x="606" y="240" font-size="14" font-weight="700" fill="#0b6e8a">我们的目标：让信任贴着能力走</text>
+      <text x="606" y="262" font-size="12.5" fill="#1d2329">能做好的放心交给它，做不好的它主动说出来，</text>
+      <text x="606" y="280" font-size="12.5" fill="#1d2329">用户的信任随证据增长，而不是靠“感觉”</text>
+    </svg>
+    <figcaption>图 1-1　信任校准：信任既不是越高越好，也不是越低越安全</figcaption>
+  </figure>
+
+  <div class="callout"><b>关键认知：</b>我们要追求的不是“让用户最大程度地信任 Agent”，而是<b>“校准的信任”</b>——用户对 Agent 的信任程度，恰好等于 Agent 的真实可靠度。可解释性、透明度、反馈循环，都是为这个目标服务的工具。</div>
+
+  <h3>用户不信任 Agent 的三个根本原因</h3>
+  <table>
+    <tr><th>用户的疑问</th><th>本质</th><th>对应支柱</th></tr>
+    <tr><td>“它为什么给出这个结论？靠谱吗？”</td><td>决策过程是黑盒，无法验证</td><td><span class="tag a">可解释性</span></td></tr>
+    <tr><td>“它到底能干什么？现在在干什么？动了我哪些数据？”</td><td>能力边界、运行状态、权限不可见</td><td><span class="tag w">透明度</span></td></tr>
+    <tr><td>“它要是做错了，我能拦住吗？下次还会错吗？”</td><td>缺少控制权和改进通道</td><td><span class="tag g">反馈循环</span></td></tr>
+  </table>
+</section>
+
+<!-- ================= 02 framework ================= -->
+<section class="slide" id="s2" data-title="三支柱框架">
+  <div class="slide-head"><span class="no">02</span><h2>可信 Agent 的三根支柱</h2><span class="en">See it · Know it · Control it</span></div>
+
+  <figure>
+    <svg viewBox="0 0 1000 330">
+      <text x="180" y="30" font-size="13" text-anchor="middle" fill="#5b6670">“它为什么这么做？”</text>
+      <text x="500" y="30" font-size="13" text-anchor="middle" fill="#5b6670">“它能做什么、在做什么？”</text>
+      <text x="820" y="30" font-size="13" text-anchor="middle" fill="#5b6670">“做错了我管得住吗？”</text>
+
+      <rect x="40" y="44" width="280" height="190" rx="3" fill="#fff" stroke="#0b6e8a" stroke-width="1.5"/>
+      <rect x="40" y="44" width="280" height="40" fill="#0b6e8a"/>
+      <text x="180" y="70" font-size="15" font-weight="700" text-anchor="middle" fill="#fff">可解释性 · 看得清</text>
+      <text x="58" y="110" font-size="13" fill="#1d2329">▸ 解构黑盒决策</text>
+      <text x="58" y="136" font-size="13" fill="#1d2329">▸ 展现推理链路（怎么想的）</text>
+      <text x="58" y="162" font-size="13" fill="#1d2329">▸ 给出决策依据（凭什么）</text>
+      <text x="58" y="188" font-size="13" fill="#1d2329">▸ 标注置信度与假设</text>
+      <text x="58" y="220" font-size="12" fill="#5b6670">目标：想得通、可验证</text>
+
+      <rect x="360" y="44" width="280" height="190" rx="3" fill="#fff" stroke="#b45309" stroke-width="1.5"/>
+      <rect x="360" y="44" width="280" height="40" fill="#b45309"/>
+      <text x="500" y="70" font-size="15" font-weight="700" text-anchor="middle" fill="#fff">透明度 · 看得全</text>
+      <text x="378" y="110" font-size="13" fill="#1d2329">▸ 坦诚能力边界与局限</text>
+      <text x="378" y="136" font-size="13" fill="#1d2329">▸ 同步实时运行状态</text>
+      <text x="378" y="162" font-size="13" fill="#1d2329">▸ 公开操作流水（审计日志）</text>
+      <text x="378" y="188" font-size="13" fill="#1d2329">▸ 袒露底层权限</text>
+      <text x="378" y="220" font-size="12" fill="#5b6670">目标：无隐瞒、有安全感</text>
+
+      <rect x="680" y="44" width="280" height="190" rx="3" fill="#fff" stroke="#2f7d32" stroke-width="1.5"/>
+      <rect x="680" y="44" width="280" height="40" fill="#2f7d32"/>
+      <text x="820" y="70" font-size="15" font-weight="700" text-anchor="middle" fill="#fff">反馈循环 · 管得住</text>
+      <text x="698" y="110" font-size="13" fill="#1d2329">▸ 敏捷的干预通道</text>
+      <text x="698" y="136" font-size="13" fill="#1d2329">▸ 批准 / 修改 / 拒绝 / 中断</text>
+      <text x="698" y="162" font-size="13" fill="#1d2329">▸ 评价系统（点赞、纠错）</text>
+      <text x="698" y="188" font-size="13" fill="#1d2329">▸ 反馈驱动持续改进</text>
+      <text x="698" y="220" font-size="12" fill="#5b6670">目标：人是最终决策法官</text>
+
+      <path d="M180,234 L180,262 L460,262" fill="none" stroke="#4a5560" stroke-width="1.5"/>
+      <path d="M820,234 L820,262 L540,262" fill="none" stroke="#4a5560" stroke-width="1.5"/>
+      <path d="M500,234 L500,276" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <rect x="300" y="280" width="400" height="40" rx="3" fill="#e3f0f4" stroke="#0b6e8a" stroke-width="1.5"/>
+      <text x="500" y="306" font-size="15" font-weight="700" text-anchor="middle" fill="#0b6e8a">校准的信任 → 敢用 · 会用 · 一直用</text>
+    </svg>
+    <figcaption>图 2-1　三根支柱分别回答用户心里的三个问题</figcaption>
+  </figure>
+
+  <div class="grid3">
+    <div class="box accent"><h4>可解释性 ≠ 把思考过程全倒出来</h4>是把<b>结论和依据</b>的关系讲清楚，让用户能<b>验证</b>，而不是让用户读 3000 字的思维链。</div>
+    <div class="box warn"><h4>透明度 ≠ 把所有日志都甩给用户</h4>是让用户<b>在需要时一定能找到</b>：它做过什么、能动什么、不会什么。</div>
+    <div class="box ok"><h4>反馈循环 ≠ 加一个点赞按钮</h4>是<b>干预 → 记录 → 改进</b>的闭环。只收不改的反馈，比没有反馈更伤信任。</div>
+  </div>
+  <p class="muted">三者的关系：可解释性让用户<b>判断</b>对不对，透明度让用户<b>预期</b>会发生什么，反馈循环让用户在判断和预期落空时<b>有办法</b>。缺任何一根，信任都立不住。</p>
+</section>
+
+<!-- ================= 03 explainability principles ================= -->
+<section class="slide" id="s3" data-title="可解释性：解构黑盒">
+  <div class="slide-head"><span class="no">03</span><h2>可解释性：解构黑盒决策</h2><span class="en">Explainability</span></div>
+  <p class="lead">大模型的内部计算是不可解释的（几百亿参数），但 Agent 的<b>行为</b>是可以解释的：它查了什么、看到了什么、基于哪几条证据、做了哪些假设、得出了什么结论。<b>我们解释的是“行为链路”，不是“神经元”。</b></p>
+
+  <h3>分层解释：用户只为自己关心的那一层付出注意力</h3>
+  <div class="grid3">
+    <div class="box accent">
+      <h4><span class="tag a">L1</span>一句话结论 + 核心理由</h4>
+      默认展示，所有用户都看。<br>
+      <span class="muted">“建议全额退款 ¥328。理由：商品签收 3 天内、属于质量问题、符合 7 天无理由政策。”</span>
+    </div>
+    <div class="box accent">
+      <h4><span class="tag a">L2</span>决策依据 + 可点击溯源</h4>
+      一键展开，谨慎的用户看。<br>
+      <span class="muted">订单记录、物流签收时间、退款政策第 3.2 条原文、用户上传的照片——每条都能点开原始数据。</span>
+    </div>
+    <div class="box accent">
+      <h4><span class="tag a">L3</span>完整执行轨迹</h4>
+      面向开发者 / 审计人员。<br>
+      <span class="muted">每一次模型调用、工具调用的入参出参、耗时、Token（LangSmith Trace）。</span>
+    </div>
+  </div>
+
+  <h3>一个好的解释必须包含的五个要素</h3>
+  <table>
+    <tr><th>要素</th><th>回答的问题</th><th>反例（看了更不放心）</th><th>正例</th></tr>
+    <tr><td><b>结论</b></td><td>你最终建议什么？</td><td>“综合考虑多方面因素……”</td><td>“建议全额退款 ¥328”</td></tr>
+    <tr><td><b>推理链路</b></td><td>你是怎么一步步得出的？</td><td>直接甩出结论</td><td>查订单 → 核对签收时间 → 匹配政策条款 → 判断</td></tr>
+    <tr><td><b>依据</b></td><td>你凭什么？</td><td>“根据相关规定”</td><td>“《退款政策》3.2 条：签收 7 日内……”<sup class="ref">[1]</sup></td></tr>
+    <tr><td><b>假设</b></td><td>你默认了什么前提？</td><td>不说，悄悄默认</td><td>“假设照片中的破损为运输造成”</td></tr>
+    <tr><td><b>置信度</b></td><td>你有多确定？</td><td>所有回答语气同样笃定</td><td>“置信度：中。照片模糊，建议人工确认”</td></tr>
+  </table>
+
+  <div class="grid2">
+    <div class="box bad"><h4>反模式：把原始思维链（CoT）直接给用户</h4>
+      <ul>
+        <li>冗长：用户没耐心读，等于没解释</li>
+        <li>不忠实：模型写出的“思考”不一定是它真实的决策原因（事后合理化）</li>
+        <li>泄露：可能把系统提示词、内部规则、其他用户数据带出来</li>
+      </ul>
+    </div>
+    <div class="box ok"><h4>正确做法：结构化、可验证的解释</h4>
+      <ul>
+        <li>让模型按 Schema 输出“结论 / 步骤 / 证据 / 假设 / 置信度”</li>
+        <li>证据必须指向<b>真实的工具返回结果</b>，可点击溯源</li>
+        <li>解释的价值在于<b>可验证</b>，不在于“看起来很有道理”</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 04 explainability impl ================= -->
+<section class="slide" id="s4" data-title="可解释性：代码实现">
+  <div class="slide-head"><span class="no">04</span><h2>可解释性落地：结构化解释 + 证据溯源</h2><span class="en">Structured Output with Evidence</span></div>
+  <p>贯穿本课的示例：一个<b>客服退款 Agent</b>，它有两个工具：<code>search_orders</code>（只读查询订单）和 <code>issue_refund</code>（真实打款，不可逆）。</p>
+
+  <div class="code-title">explainable_agent.py — 用 response_format 强制输出“带依据的结论”</div>
+<pre class="py">from typing import Literal
+from pydantic import BaseModel, Field
+from langchain.agents import create_agent
+
+
+class Evidence(BaseModel):
+    source: str = Field(description="依据来源，必须是工具名或文档名，如 search_orders / 退款政策3.2")
+    content: str = Field(description="从工具返回结果中原样摘录的关键内容，禁止编造")
+
+
+class ExplainedDecision(BaseModel):
+    conclusion: str = Field(description="一句话结论")
+    reasoning_steps: list[str] = Field(description="得出结论的关键步骤，3-5 步")
+    evidence: list[Evidence] = Field(description="支撑结论的证据")
+    assumptions: list[str] = Field(description="结论依赖但未经验证的前提")
+    confidence: Literal["高", "中", "低"]
+    need_human_review: bool = Field(description="置信度低或涉及资金时为 True")
+
+
+agent = create_agent(
+    model="openai:gpt-4o-mini",
+    tools=[search_orders, issue_refund],
+    system_prompt="你是退款审核助手。所有结论必须引用工具返回的真实数据；信息不足时直接说明，不要猜测。",
+    response_format=ExplainedDecision,
+)
+
+result = agent.invoke({"messages": [{"role": "user", "content": "订单 A1024 能退款吗？"}]})
+decision: ExplainedDecision = result["structured_response"]</pre>
+
+  <div class="grid2">
+    <div>
+      <h3>前端如何渲染这份解释</h3>
+      <div class="mock">
+        <div class="mock-bar"><b>退款审核助手</b><span>订单 A1024</span><span class="spacer" style="flex:1"></span><span class="tag w">置信度：中</span></div>
+        <div class="mock-body">
+          <div class="mock-row"><span class="k">结论</span><span><b>建议全额退款 ¥328</b></span></div>
+          <div class="mock-row"><span class="k">推理步骤</span><span>① 查询订单：已签收 3 天<br>② 匹配政策：签收 7 日内可无理由退货<br>③ 核对商品：非定制类，不在例外清单</span></div>
+          <div class="mock-row"><span class="k">依据</span><span>search_orders：<code>signed_at=2026-10-04</code><sup class="ref">[1]</sup><br>退款政策 3.2：“签收之日起 7 日内……”<sup class="ref">[2]</sup></span></div>
+          <div class="mock-row"><span class="k">假设</span><span style="color:var(--warn)">⚠ 假设商品未拆封使用（系统无法验证）</span></div>
+        </div>
+        <div class="mock-btns"><span>查看完整轨迹 (L3)</span><span>依据有误</span></div>
+      </div>
+    </div>
+    <div>
+      <h3>三条工程要点</h3>
+      <ul>
+        <li><b>证据只能来自工具结果。</b>在 Prompt 中要求“原样摘录”，并在后端校验 <code>evidence.content</code> 确实出现在本轮的 ToolMessage 中——校验不过就降级为“低置信度”。</li>
+        <li><b>假设要显式化。</b>用户最容易被“隐含假设”坑。把假设单独成栏、用警示色，提醒用户这里需要人来判断。</li>
+        <li><b>置信度驱动交互。</b><code>need_human_review=True</code> 时，前端不展示“执行”按钮，而是“提交人工复核”。<b>解释直接决定了下一步的控制权在谁手里。</b></li>
+      </ul>
+      <div class="callout"><b>RAG 场景同理：</b>回答中的每一句话都挂上引用编号，用户点击即可跳到原文段落。“有出处的回答”比“说得漂亮的回答”可信得多。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 05 transparency: boundary ================= -->
+<section class="slide" id="s5" data-title="透明度：坦诚能力边界">
+  <div class="slide-head"><span class="no">05</span><h2>透明度（上）：坦诚能力边界</h2><span class="en">Be Honest About Limitations</span></div>
+  <p class="lead">反直觉的事实：<b>一个会说“我做不到”的 Agent，比一个什么都说“没问题”的 Agent 更值得信任。</b>用户最怕的不是 Agent 不会，而是 Agent <b>不知道自己不会</b>。</p>
+
+  <h3>上线前就公开一份“能力说明书”（Agent Card）</h3>
+  <table>
+    <tr><th>维度</th><th>退款助手的声明示例</th></tr>
+    <tr><td>能做什么</td><td>查询订单与物流；根据《退款政策》判断是否可退；在用户确认后发起 ¥1000 以内的退款</td></tr>
+    <tr><td>不能做什么</td><td>不能修改订单金额；不能处理跨境订单；不能判断商品真伪；<b>不会在未经确认的情况下打款</b></td></tr>
+    <tr><td>已知局限</td><td>对模糊照片的破损判断准确率较低；政策更新后有 24 小时同步延迟</td></tr>
+    <tr><td>数据访问</td><td>读取：订单、物流、退款政策。写入：退款单。<b>不读取</b>：用户支付账户、聊天以外的个人信息</td></tr>
+    <tr><td>出错时</td><td>所有退款可在 24 小时内由客服主管撤销；问题反馈入口：对话右上角“报告问题”</td></tr>
+  </table>
+
+  <div class="grid2">
+    <div class="box accent">
+      <h4>运行时：在边界处“主动刹车”</h4>
+      <ul>
+        <li><b>超出能力：</b>“跨境订单我无法处理，已为您转接人工客服。”</li>
+        <li><b>信息不足：</b>“订单号未查到，请确认是否为 A 开头的 5 位编号。”</li>
+        <li><b>置信度低：</b>“照片无法判断破损原因，建议上传更清晰的照片或转人工。”</li>
+        <li><b>超出权限：</b>“该订单 ¥2,680 超过我的审批额度（¥1000），已提交主管审批。”</li>
+      </ul>
+    </div>
+    <div class="box warn">
+      <h4>把“我不知道”写进系统设计，而不是只写进 Prompt</h4>
+      <ul>
+        <li>工具返回空结果 → 不允许模型自行补全，直接返回“未找到”</li>
+        <li>结构化输出中 <code>confidence="低"</code> → 前端强制走人工路径</li>
+        <li>为“拒答 / 转人工”设计正向体验，<b>不要把它当失败</b></li>
+        <li>评估集中专门加入“应该拒答”的用例，检查 Agent 会不会硬答</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout"><b>记住：</b>能力边界说在前面，是<b>承诺</b>；出了事才说，是<b>借口</b>。前者积累信任，后者透支信任。</div>
+</section>
+
+<!-- ================= 06 transparency: status / log / permission ================= -->
+<section class="slide" id="s6" data-title="透明度：状态·流水·权限">
+  <div class="slide-head"><span class="no">06</span><h2>透明度（下）：实时状态、操作流水、底层权限</h2><span class="en">Status · Audit Log · Permissions</span></div>
+  <p>Agent 执行一个任务可能要 30 秒甚至 30 分钟。这段时间里如果界面只有一个转圈的 Loading，用户会焦虑、会怀疑、会刷新页面。<b>让用户随时知道：它在干什么、干到哪了、动了什么。</b></p>
+
+  <div class="grid2">
+    <div>
+      <h3>① 实时状态：流式推送每一步</h3>
+      <div class="code-title">stream_status.py</div>
+<pre class="py">for chunk in agent.stream(
+    {"messages": [{"role": "user", "content": "处理订单 A1024 的退款"}]},
+    config,
+    stream_mode="updates",       # 每个节点执行完就推送一次
+):
+    for node, update in chunk.items():
+        if node == "__interrupt__":          # 被 HITL 拦下，等待用户裁决
+            push_status("waiting", "等待您确认", update[0].value)
+            continue
+        if not update:                       # 中间件节点可能没有状态更新
+            continue
+        msg = update["messages"][-1]
+        if node == "model" and msg.tool_calls:
+            for tc in msg.tool_calls:
+                push_status("running", f"正在调用 {tc['name']}", tc["args"])
+        elif node == "tools":
+            push_status("done", f"{msg.name} 已返回", msg.content[:80])</pre>
+      <div class="mock">
+        <div class="mock-bar"><b>任务进度</b><span>A1024 退款</span></div>
+        <div class="mock-body log">
+          <div><span class="t">21:16:02</span><span class="tag g">完成</span><span>理解请求：处理订单 A1024 退款</span></div>
+          <div><span class="t">21:16:03</span><span class="tag g">完成</span><span>search_orders(order_id="A1024")</span></div>
+          <div><span class="t">21:16:05</span><span class="tag g">完成</span><span>匹配退款政策 3.2 条</span></div>
+          <div><span class="t">21:16:06</span><span class="tag w">待确认</span><span>issue_refund(amount=328) — 等待您批准</span></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h3>② 操作流水：每次工具调用都留痕</h3>
+      <div class="code-title">audit_middleware.py</div>
+<pre class="py">import time
+from langchain.agents.middleware import wrap_tool_call
+
+
+@wrap_tool_call
+def audit_log(request, handler):
+    call = request.tool_call
+    start = time.time()
+    result = handler(request)          # 真正执行工具
+    save_audit({                        # 写入不可篡改的审计表
+        "tool": call["name"],
+        "args": call["args"],
+        "result": str(result.content)[:200],
+        "cost_ms": int((time.time() - start) * 1000),
+        "thread_id": request.runtime.config["configurable"]["thread_id"],
+    })
+    return result
+
+
+agent = create_agent(model, tools, middleware=[audit_log])</pre>
+      <p class="muted">用 Middleware 而不是在每个工具里写日志：<b>一处拦截，全部覆盖</b>，新加的工具也不会漏记。</p>
+    </div>
+  </div>
+
+  <h3>③ 底层权限：大方袒露，最小授权</h3>
+  <table>
+    <tr><th>工具</th><th>权限类型</th><th>影响范围</th><th>是否可撤销</th><th>执行策略</th></tr>
+    <tr><td><code>search_orders</code></td><td><span class="tag g">只读</span></td><td>仅当前用户的订单</td><td>—</td><td>自动执行</td></tr>
+    <tr><td><code>create_ticket</code></td><td><span class="tag a">可逆写入</span></td><td>新建工单</td><td>可关闭</td><td>自动执行，事后通知</td></tr>
+    <tr><td><code>issue_refund</code></td><td><span class="tag r">不可逆写入</span></td><td>资金流出 ≤ ¥1000</td><td>24h 内主管可撤销</td><td><b>必须用户确认</b></td></tr>
+  </table>
+  <div class="callout"><b>安全感来自“可预期”：</b>用户在授权前就看到这张表，就知道 Agent 最坏能做到什么程度。<b>最小授权</b>（只给完成任务必需的权限）+ <b>权限公开</b>，比任何“请放心”的文案都有效。</div>
+</section>
+
+<!-- ================= 07 feedback: intervention ================= -->
+<section class="slide" id="s7" data-title="反馈循环：干预通道">
+  <div class="slide-head"><span class="no">07</span><h2>反馈循环（上）：敏捷的干预通道</h2><span class="en">Human-in-the-Loop</span></div>
+  <p class="lead">可解释性和透明度让用户“看见”，但如果看见了问题却拦不住，只会更焦虑。<b>干预通道把用户从“观众”变成“法官”</b>：Agent 负责提案，人负责裁决。</p>
+
+  <h3>不是每一步都要问：按“风险”决定干预强度</h3>
+  <table>
+    <tr><th style="width:150px">影响范围 \ 可逆性</th><th>可逆（可撤销）</th><th>部分可逆</th><th>不可逆</th></tr>
+    <tr><td><b>仅影响自己</b></td><td class="c-ok">自动执行<br><span class="muted">草拟回复、查询数据</span></td><td class="c-ok">自动执行 + 事后通知<br><span class="muted">修改个人设置</span></td><td class="c-w">执行前确认<br><span class="muted">删除自己的文件</span></td></tr>
+    <tr><td><b>影响他人 / 外部</b></td><td class="c-ok">自动执行 + 事后通知<br><span class="muted">创建工单</span></td><td class="c-w">执行前确认<br><span class="muted">发送邮件、发消息</span></td><td class="c-r">强确认 + 可编辑参数<br><span class="muted">打款、删库、提交合同</span></td></tr>
+    <tr><td><b>涉及资金 / 合规</b></td><td class="c-w">执行前确认</td><td class="c-r">强确认 + 二次校验</td><td class="c-r">多人审批 / 禁止 Agent 执行</td></tr>
+  </table>
+  <p class="muted">每一次确认都有成本。<b>问得太多 → 用户无脑点“同意”（确认疲劳），干预形同虚设</b>；问得太少 → 出事。风险分级就是在两者之间找平衡。</p>
+
+  <h3>用户手里应该有的四种裁决</h3>
+  <div class="grid2">
+    <div class="mock">
+      <div class="mock-bar"><b>需要您确认</b><span class="tag r">不可逆 · 涉及资金</span></div>
+      <div class="mock-body">
+        <div class="mock-row"><span class="k">操作</span><span><code>issue_refund</code> 发起退款</span></div>
+        <div class="mock-row"><span class="k">参数</span><span>订单 A1024 · 金额 <b>¥328.00</b> · 原路退回</span></div>
+        <div class="mock-row"><span class="k">理由</span><span>签收 3 天内，符合退款政策 3.2 条</span></div>
+        <div class="mock-row"><span class="k">影响</span><span>资金将在 1–3 个工作日内退回用户账户</span></div>
+      </div>
+      <div class="mock-btns"><span class="pri">批准</span><span>修改金额</span><span class="dng">拒绝并说明原因</span><span>我来回答</span></div>
+    </div>
+    <table style="margin:0">
+      <tr><th>裁决</th><th>含义</th></tr>
+      <tr><td><span class="tag g">approve</span></td><td>按原计划执行</td></tr>
+      <tr><td><span class="tag a">edit</span></td><td>改参数再执行（如把 ¥328 改成 ¥200 部分退款）</td></tr>
+      <tr><td><span class="tag r">reject</span></td><td>不执行，并把拒绝原因告诉 Agent，让它调整方案</td></tr>
+      <tr><td><span class="tag n">respond</span></td><td>人直接代替工具给出结果（如“已线下处理”）</td></tr>
+    </table>
+  </div>
+  <div class="callout"><b>此外还要有一个“急停按钮”：</b>任何时刻用户都能中断正在运行的任务，并且 Agent 能告诉用户“已经做了哪些、哪些还没做”——这又回到了透明度。</div>
+</section>
+
+<!-- ================= 08 feedback: HITL code ================= -->
+<section class="slide" id="s8" data-title="反馈循环：HITL 实现">
+  <div class="slide-head"><span class="no">08</span><h2>干预通道落地：HumanInTheLoopMiddleware</h2><span class="en">interrupt → decide → resume</span></div>
+  <p>LangChain v1 内置了人机协同中间件：在指定工具被调用前<b>暂停整个 Agent</b>，把待执行的操作交给人裁决，裁决后从断点<b>原地恢复</b>。依赖 checkpointer 保存暂停时的状态。</p>
+
+  <div class="code-title">hitl_agent.py</div>
+<pre class="py">from langchain.agents import create_agent
+from langchain.agents.middleware import HumanInTheLoopMiddleware
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.types import Command
+
+agent = create_agent(
+    model="openai:gpt-4o-mini",
+    tools=[search_orders, issue_refund],
+    middleware=[
+        HumanInTheLoopMiddleware(
+            interrupt_on={
+                "search_orders": False,                                         # 只读：自动执行
+                "issue_refund": {"allowed_decisions": ["approve", "edit", "reject"]},  # 资金：必须裁决
+            },
+            description_prefix="退款操作需要您确认",
+        ),
+        audit_log,                                    # 上一节的审计中间件，照样生效
+    ],
+    checkpointer=InMemorySaver(),                     # 生产环境换成 PostgresSaver
+)
+
+config = {"configurable": {"thread_id": "refund-A1024"}}
+result = agent.invoke({"messages": [{"role": "user", "content": "订单 A1024 退款"}]}, config)
+
+# 1) Agent 在 issue_refund 之前暂停，把待审批的操作抛给前端
+if "__interrupt__" in result:
+    request = result["__interrupt__"][0].value
+    for action in request["action_requests"]:
+        print(action["name"], action["args"], action["description"])
+
+# 2) 用户裁决：把金额改成 200 元（部分退款）
+result = agent.invoke(
+    Command(resume={"decisions": [{
+        "type": "edit",
+        "edited_action": {"name": "issue_refund", "args": {"order_id": "A1024", "amount": 200}},
+    }]}),
+    config,                                           # 同一个 thread_id，从断点继续
+)
+
+# 也可以拒绝，并告诉 Agent 原因 —— 它会据此调整方案，而不是直接崩掉
+# Command(resume={"decisions": [{"type": "reject", "message": "商品已拆封，按政策只能换货"}]})</pre>
+
+  <div class="grid3">
+    <div class="box accent"><h4>为什么必须有 checkpointer</h4>暂停可能持续几小时（等主管审批）。状态必须持久化，服务重启后也能从断点恢复。</div>
+    <div class="box accent"><h4>reject 的 message 很关键</h4>它会作为工具结果回到模型。这就是<b>最短的反馈回路</b>：人的一句纠正，当场改变 Agent 的下一步。</div>
+    <div class="box accent"><h4>按工具配置，不按 Prompt 约束</h4>“打款前要确认”写在 Prompt 里，模型可能忘；写在 Middleware 里，<b>代码保证一定会停</b>。</div>
+  </div>
+</section>
+
+<!-- ================= 09 feedback: evaluation loop ================= -->
+<section class="slide" id="s9" data-title="反馈循环：评价与进化">
+  <div class="slide-head"><span class="no">09</span><h2>反馈循环（下）：评价系统与持续进化</h2><span class="en">Collect → Attribute → Evaluate → Improve</span></div>
+  <p class="lead">干预解决的是“这一次”不出错，评价系统解决的是“下一次”不再错。用户的每一次点赞、点踩、修改、拒绝，都是免费的标注数据——<b>前提是你真的拿它去改进了。</b></p>
+
+  <figure>
+    <svg viewBox="0 0 1000 220">
+      <rect x="20" y="40" width="160" height="70" rx="3" fill="#fff" stroke="#4a5560"/>
+      <text x="100" y="68" font-size="14" font-weight="700" text-anchor="middle">① 用户交互</text>
+      <text x="100" y="90" font-size="12" text-anchor="middle" fill="#5b6670">Agent 执行任务</text>
+      <rect x="220" y="40" width="160" height="70" rx="3" fill="#e7f3e8" stroke="#2f7d32"/>
+      <text x="300" y="68" font-size="14" font-weight="700" text-anchor="middle">② 收集反馈</text>
+      <text x="300" y="90" font-size="12" text-anchor="middle" fill="#5b6670">显式评分 + 隐式行为</text>
+      <rect x="420" y="40" width="160" height="70" rx="3" fill="#e3f0f4" stroke="#0b6e8a"/>
+      <text x="500" y="68" font-size="14" font-weight="700" text-anchor="middle">③ 归因定位</text>
+      <text x="500" y="90" font-size="12" text-anchor="middle" fill="#5b6670">反馈挂到 Trace 上</text>
+      <rect x="620" y="40" width="160" height="70" rx="3" fill="#e3f0f4" stroke="#0b6e8a"/>
+      <text x="700" y="68" font-size="14" font-weight="700" text-anchor="middle">④ 沉淀评估集</text>
+      <text x="700" y="90" font-size="12" text-anchor="middle" fill="#5b6670">差评案例 → 回归测试</text>
+      <rect x="820" y="40" width="160" height="70" rx="3" fill="#fdf1e3" stroke="#b45309"/>
+      <text x="900" y="68" font-size="14" font-weight="700" text-anchor="middle">⑤ 改进发布</text>
+      <text x="900" y="90" font-size="12" text-anchor="middle" fill="#5b6670">Prompt/工具/记忆/路由</text>
+      <path d="M180,75 L218,75" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M380,75 L418,75" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M580,75 L618,75" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M780,75 L818,75" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M900,110 L900,160 L100,160 L100,112" fill="none" stroke="#0b6e8a" stroke-width="2" marker-end="url(#arrA)"/>
+      <text x="500" y="182" font-size="13" text-anchor="middle" fill="#0b6e8a" font-weight="700">慢循环（天/周）：更新后的 Agent 先跑评估集，不退化才上线</text>
+      <path d="M300,40 C300,10 100,10 100,38" fill="none" stroke="#2f7d32" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrA)"/>
+      <text x="200" y="20" font-size="12.5" text-anchor="middle" fill="#2f7d32" font-weight="700">快循环（秒级）：纠正写入记忆，当场生效</text>
+      <text x="500" y="208" font-size="12" text-anchor="middle" fill="#5b6670">最后一步别忘了：告诉用户“您上次反馈的问题已修复”——让用户看见自己的反馈有用</text>
+    </svg>
+    <figcaption>图 9-1　双速反馈闭环：快循环改“这个用户”，慢循环改“这个 Agent”</figcaption>
+  </figure>
+
+  <div class="grid2">
+    <div>
+      <h3>显式反馈 vs 隐式反馈</h3>
+      <table>
+        <tr><th>类型</th><th>信号</th><th>特点</th></tr>
+        <tr><td><span class="tag a">显式</span></td><td>点赞/点踩、1–5 分、文字评论、“依据有误”按钮</td><td>意图明确，但只有不到 5% 的用户会主动给</td></tr>
+        <tr><td><span class="tag w">隐式</span></td><td>审批时 edit 了参数、reject、重新提问、复制结果、中途中断、转人工</td><td>量大、真实，需要定义规则解读</td></tr>
+      </table>
+      <p class="muted">HITL 里的 <code>edit</code> 是最有价值的信号：用户不只说“错了”，还直接给出了<b>正确答案</b>。</p>
+    </div>
+    <div>
+      <h3>把反馈挂到 Trace 上（LangSmith）</h3>
+<pre class="py">import uuid
+from langsmith import Client
+
+run_id = uuid.uuid4()
+result = agent.invoke(inputs, {**config, "run_id": run_id})
+
+# 用户在界面上点了“踩”，并留言
+Client().create_feedback(
+    run_id=run_id,
+    key="user_rating",
+    score=0,
+    comment="政策引用错了，跨境订单不适用 3.2 条",
+)</pre>
+      <p class="muted">反馈和完整执行轨迹绑定后，开发者能直接定位到是<b>哪次检索、哪次工具调用、哪段 Prompt</b> 出了问题，再把这条 Trace 一键加入评估数据集。</p>
+    </div>
+  </div>
+
+  <div class="callout"><b>人机共生：</b>用户纠正一次，Agent 记住一次（快循环）；一类问题被反复纠正，就沉淀为规则和测试（慢循环）。Agent 越用越懂你，信任随之“复利增长”——这就是“在不断驯化中达成共生”。</div>
+</section>
+
+<!-- ================= 10 case ================= -->
+<section class="slide" id="s10" data-title="综合案例：一次可信交互">
+  <div class="slide-head"><span class="no">10</span><h2>综合案例：三根支柱如何在一次交互中协同</h2><span class="en">Putting It All Together</span></div>
+  <p>用户：“订单 A1024 收到的杯子是裂的，帮我退款。”</p>
+  <table>
+    <tr><th style="width:56px">步骤</th><th>Agent 的行为</th><th>用户看到的</th><th>支柱</th></tr>
+    <tr><td>1</td><td>检查请求是否在能力范围内（国内订单 ✓）</td><td>“我可以帮您处理，预计需要 10 秒”</td><td><span class="tag w">透明度</span>能力边界</td></tr>
+    <tr><td>2</td><td>调用 <code>search_orders</code>（只读，自动执行，写入审计）</td><td>进度条：“正在查询订单… 已签收 3 天”</td><td><span class="tag w">透明度</span>实时状态 · 流水</td></tr>
+    <tr><td>3</td><td>匹配政策，生成结构化解释</td><td>结论 + 3 步推理 + 2 条可点击依据 + “假设：破损非人为”</td><td><span class="tag a">可解释性</span>链路 · 依据 · 假设</td></tr>
+    <tr><td>4</td><td>准备调用 <code>issue_refund</code>，被 HITL 中间件拦截</td><td>确认卡片：¥328 · 不可逆 · 批准 / 修改 / 拒绝</td><td><span class="tag g">反馈循环</span>干预通道</td></tr>
+    <tr><td>5</td><td>用户 reject：“只退 200，杯子还能用”→ Agent 改为部分退款方案再次提交</td><td>新的确认卡片：¥200</td><td><span class="tag g">反馈循环</span>当场纠正</td></tr>
+    <tr><td>6</td><td>用户批准，执行退款，返回流水号</td><td>“已退款 ¥200，流水号 RF-88231，24h 内可撤销”</td><td><span class="tag w">透明度</span>结果可追溯</td></tr>
+    <tr><td>7</td><td>记录本次 edit / reject 作为隐式反馈；用户点赞</td><td>“感谢反馈”</td><td><span class="tag g">反馈循环</span>评价 · 进化</td></tr>
+  </table>
+  <div class="callout"><b>注意第 5 步：</b>Agent 错了吗？没有，它按政策给出了合理建议。但最终决定权在用户手里，而且用户的意见<b>当场</b>改变了 Agent 的行为。用户这时得到的不只是一次退款，而是“这个 Agent 听我的”的确定感——这就是信任的来源。</div>
+</section>
+
+<!-- ================= 11 anti-patterns & checklist ================= -->
+<section class="slide" id="s11" data-title="反模式与检查清单">
+  <div class="slide-head"><span class="no">11</span><h2>常见反模式 & 上线前检查清单</h2><span class="en">Anti-patterns & Checklist</span></div>
+  <div class="grid2">
+    <div>
+      <h3>反模式：这些做法正在消耗用户的信任</h3>
+      <table>
+        <tr><th>反模式</th><th>后果</th></tr>
+        <tr><td>永远语气笃定，从不说“不确定”</td><td>第一次出错就信任崩塌</td></tr>
+        <tr><td>“根据相关资料”——引用无法点开</td><td>解释沦为装饰</td></tr>
+        <tr><td>长时间 Loading，没有中间状态</td><td>焦虑、重复提交</td></tr>
+        <tr><td>每一步都弹确认框</td><td>确认疲劳，用户闭眼点同意</td></tr>
+        <tr><td>安全约束只写在 Prompt 里</td><td>模型一“忘”就越权</td></tr>
+        <tr><td>拒绝后 Agent 直接终止或重复同一方案</td><td>用户觉得“它根本不听”</td></tr>
+        <tr><td>有点踩按钮，但数据没人看</td><td>反馈石沉大海，用户不再反馈</td></tr>
+        <tr><td>出事后才公布能力限制</td><td>声明变借口</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>检查清单</h3>
+      <p><span class="tag a">可解释性</span></p>
+      <ul>
+        <li>☐ 结论是否附带推理步骤和可溯源的依据？</li>
+        <li>☐ 依据是否校验过确实来自工具结果？</li>
+        <li>☐ 隐含假设和置信度是否显式展示？</li>
+        <li>☐ 是否提供 L1/L2/L3 分层查看？</li>
+      </ul>
+      <p><span class="tag w">透明度</span></p>
+      <ul>
+        <li>☐ 是否有公开的能力说明书（能做 / 不能做 / 局限）？</li>
+        <li>☐ 长任务是否流式展示进度？</li>
+        <li>☐ 每次工具调用是否进入审计日志？</li>
+        <li>☐ 权限清单是否在授权前可见、是否最小授权？</li>
+      </ul>
+      <p><span class="tag g">反馈循环</span></p>
+      <ul>
+        <li>☐ 高风险工具是否由代码（Middleware）强制拦截？</li>
+        <li>☐ 用户能否 批准 / 修改 / 拒绝 / 随时中断？</li>
+        <li>☐ 反馈是否关联到 Trace，并进入评估集？</li>
+        <li>☐ 是否把“已根据反馈改进”告诉用户？</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 12 summary ================= -->
+<section class="slide" id="s12" data-title="总结与思考题">
+  <div class="slide-head"><span class="no">12</span><h2>总结与思考题</h2><span class="en">Recap</span></div>
+  <table>
+    <tr><th>支柱</th><th>一句话</th><th>核心手段</th><th>LangChain 落地</th></tr>
+    <tr><td><span class="tag a">可解释性</span></td><td>解构黑盒，让用户看得清、想得通</td><td>分层解释、证据溯源、假设与置信度</td><td><code>response_format</code> 结构化输出</td></tr>
+    <tr><td><span class="tag w">透明度</span></td><td>坦诚边界，同步状态，袒露权限</td><td>能力说明书、流式状态、审计日志、最小授权</td><td><code>stream_mode="updates"</code>、<code>@wrap_tool_call</code></td></tr>
+    <tr><td><span class="tag g">反馈循环</span></td><td>人是最终法官，在驯化中共生</td><td>风险分级干预、四种裁决、双速反馈闭环</td><td><code>HumanInTheLoopMiddleware</code>、LangSmith Feedback</td></tr>
+  </table>
+  <div class="callout"><b>一句话带走：</b>用户信任的从来不是“AI 很聪明”，而是“<b>我知道它为什么这么做、知道它会做什么、知道它做错了我能管</b>”。信任不是宣传出来的，是被<b>设计</b>出来、被<b>证据</b>积累出来的。</div>
+
+  <h3>思考题</h3>
+  <ol class="quiz">
+    <li>你的 Agent 有一个“发送邮件”工具。按照风险矩阵，它应该自动执行还是需要确认？如果是发给公司内部同事 vs 发给客户，策略应该一样吗？</li>
+    <li>模型输出的“推理步骤”可能是事后合理化的。除了在 Prompt 里要求“如实”，你还能用什么<b>工程手段</b>提升解释的可信度？</li>
+    <li>用户连续 10 次都直接点“批准”，没有看内容。这说明了什么问题？你会怎么调整？</li>
+  </ol>
+  <details><summary>参考思路</summary>
+    <ol>
+      <li>发邮件“影响他人、不可撤回”。内部邮件可以“执行前确认”，对外邮件建议“强确认 + 可编辑正文”；可以按收件人域名动态配置 <code>interrupt_on</code>。</li>
+      <li>校验证据是否真实出现在工具返回中；让解释引用的数据与最终执行参数做一致性检查；用评估集对比“解释”与“行为”是否一致；L3 层直接展示真实工具调用而不是模型自述。</li>
+      <li>这是确认疲劳：低风险操作被过度拦截，或确认卡片信息不够醒目。应该下调低风险操作的拦截等级，只在真正关键处确认，并在卡片中突出“金额 / 收件人 / 不可逆”等关键字段。</li>
+    </ol>
+  </details>
+</section>
+
+</main>
+</div>
+
+<script>
+(() => {
+  const slides = [...document.querySelectorAll('section.slide')];
+  const toc = document.getElementById('toc');
+
+  slides.forEach((s, i) => {
+    const a = document.createElement('a');
+    a.href = '#' + s.id;
+    a.innerHTML = `<span class="num">${String(i).padStart(2, '0')}</span>${s.dataset.title}`;
+    toc.appendChild(a);
+  });
+  const links = [...toc.querySelectorAll('a')];
+  const io = new IntersectionObserver(entries => entries.forEach(e => {
+    if (e.isIntersecting) links.forEach(l => l.classList.toggle('active', l.hash === '#' + e.target.id));
+  }), { rootMargin: '-30% 0px -60% 0px' });
+  slides.forEach(s => io.observe(s));
+
+  const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const re = /(#[^\n]*)|("""[\s\S]*?"""|f?"[^"\n]*"|'[^'\n]*')|\b(from|import|def|class|return|for|in|if|elif|else|lambda|with|as|None|True|False|print)\b|\b([A-Za-z_]\w*)(?=\()/g;
+  document.querySelectorAll('pre.py').forEach(pre => {
+    const src = pre.textContent;
+    let out = '', last = 0, m;
+    while ((m = re.exec(src))) {
+      out += esc(src.slice(last, m.index));
+      const cls = m[1] ? 'c' : m[2] ? 's' : m[3] ? 'k' : 'f';
+      out += `<span class="${cls}">${esc(m[0])}</span>`;
+      last = re.lastIndex;
+    }
+    pre.innerHTML = out + esc(src.slice(last));
+  });
+
+  const btn = document.getElementById('btnPresent');
+  const pager = document.getElementById('pager');
+  let cur = 0;
+  const show = i => {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, j) => s.classList.toggle('current', j === cur));
+    pager.textContent = `${cur + 1} / ${slides.length}`;
+    window.scrollTo(0, 0);
+  };
+  const toggle = () => {
+    const on = document.body.classList.toggle('present');
+    btn.textContent = on ? '退出演示 (Esc)' : '演示模式 (P)';
+    if (on) {
+      const y = window.scrollY + 120;
+      const idx = slides.findLastIndex(s => s.offsetTop <= y);
+      show(idx < 0 ? 0 : idx);
+    } else {
+      slides[cur].scrollIntoView();
+    }
+  };
+  btn.onclick = toggle;
+  document.addEventListener('keydown', e => {
+    const present = document.body.classList.contains('present');
+    if (e.key === 'p' || e.key === 'P') toggle();
+    else if (present && e.key === 'Escape') toggle();
+    else if (present && ['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); show(cur + 1); }
+    else if (present && ['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); show(cur - 1); }
+  });
+})();
+</script>
+</body>
+</html>

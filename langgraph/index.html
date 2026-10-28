@@ -1,0 +1,236 @@
+<style>
+:root{--bg:#0E1116;--card:#161B23;--line:#242C38;--t1:#EEF2F8;--t2:#94A2B5;--t3:#5C6B7E;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#080B0F;font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;color:var(--t1);padding:40px 24px 80px}
+.wrap{max-width:1280px;margin:0 auto}
+.page-title{font-size:24px;font-weight:500;margin-bottom:8px}
+.page-sub{font-size:15px;color:var(--t2);margin-bottom:36px;line-height:1.7}
+.frame{margin-bottom:44px}
+.frame-head{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
+.idx{font-size:13px;color:#0E1116;background:var(--t2);border-radius:6px;padding:2px 9px}
+.frame-name{font-size:17px;font-weight:500}
+.frame-time{font-size:13px;color:var(--t3);margin-left:auto;font-variant-numeric:tabular-nums}
+.frame svg{width:100%;height:auto;display:block;border-radius:12px;border:1px solid #1B222C}
+</style>
+<div class="wrap" data-page-node-id="DfULCBgN3EKnunjDZORQer">
+<div class="page-title" data-page-node-id="kL8laRoxm4QB3YeESAewaq">Agent 三层演进 · 分镜画面板</div>
+<div class="page-sub" data-page-node-id="uDCAFyxayFwoKtdqdcFT1T">对应口播脚本的 6 个画面 · 1280×720 · 可直接截图或导出 SVG 进剪辑软件</div>
+
+<div class="frame" data-page-node-id="bCsZDivIAoFPzFuc7R3zr2">
+<div class="frame-head" data-page-node-id="rGdyQF6kbehE5UwuTqt5dB"><span class="idx" data-page-node-id="XzC4Y7uoPUUSIYuFGyH8C4">01</span><span class="frame-name" data-page-node-id="ky4hCr2YmxzzX6Dm9dLtcW">开场钩子</span><span class="frame-time" data-page-node-id="DS3iAPgpdBKy3Dj3ifpw4i">0:00 – 0:10</span></div>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family='-apple-system, "Segoe UI", "Microsoft YaHei", sans-serif' data-page-node-id="brXCcpn7E8Oflv3VUTq1Ff">
+<rect width="1280" height="720" fill="#0E1116" data-page-node-id="W5JCARRxVLopaUp18G5Wbm"/>
+<text x="80" y="110" font-size="17" fill="#5C6B7E" letter-spacing="3" data-page-node-id="QWqUoA8OKw6tKNp4CJSnAk">AGENT 三层演进 · 开场</text>
+<text x="80" y="270" font-size="50" font-weight="500" fill="#EEF2F8" data-page-node-id="wFMAOGw08MzI8irCgUdQN3">LangGraph 是升级版的</text>
+<text x="80" y="346" font-size="50" font-weight="500" fill="#8B7FE8" data-page-node-id="MzgTXyDYvqTDlPqraR60wq">ReAct Agent 吗？</text>
+<rect x="80" y="396" width="110" height="3" rx="1.5" fill="#8B7FE8" data-page-node-id="uwdjT8Pv4qvCBRItTCJrLd"/>
+<text x="80" y="476" font-size="32" fill="#94A2B5" data-page-node-id="s4JgsQuFIaEc7qQXZcQJ2g">不是。它们根本不在一个层级。</text>
+<text x="760" y="286" font-size="16" fill="#5C6B7E" data-page-node-id="zYxUcXAooVBHgQrv6U9Gza">三者不在一个层级</text>
+<rect x="760" y="306" width="210" height="64" rx="12" fill="#1B1F26" stroke="#7C8899" stroke-width="0.5" data-page-node-id="UUGrRCHR5HUZwkWt8wQ0eo"/>
+<text x="780" y="344" font-size="19" fill="#A9B4C2" data-page-node-id="HL9dsSs57iE2dk5IYdvS5x">raw_prompt_react</text>
+<rect x="760" y="386" width="300" height="64" rx="12" fill="#101E2E" stroke="#3E8EE0" stroke-width="0.5" data-page-node-id="lDEfxqAaGCAh0P5zkXDyGZ"/>
+<text x="780" y="424" font-size="19" fill="#8FC4F0" data-page-node-id="wIgHQBGVyopdjtHX8rVbug">ReAct Agent</text>
+<rect x="760" y="466" width="390" height="64" rx="12" fill="#1A1730" stroke="#8B7FE8" stroke-width="0.5" data-page-node-id="KKfJB2zTRrCYsElimYNG2K"/>
+<text x="780" y="504" font-size="19" fill="#B7AEF5" data-page-node-id="DDCmKK7wDFAFDy9v8abipJ">LangGraph</text>
+<text x="760" y="576" font-size="16" fill="#94A2B5" data-page-node-id="RvZnQ3ZLCLMpAFF8ucPXde">LangGraph 是容器，装得下前两者</text>
+</svg>
+</div>
+
+<div class="frame" data-page-node-id="iq5Pt7L4ZBzNZoxyWh3wJr">
+<div class="frame-head" data-page-node-id="3N8yHPJ2BRHiJMxQ75iYLK"><span class="idx" data-page-node-id="6hxpy4YiCvQTH4MJ9APqky">02</span><span class="frame-name" data-page-node-id="6nP68yBzdcyP6nfQC5z1NQ">对比表 + 控制权迁移轴</span><span class="frame-time" data-page-node-id="yeJqEYVEEetClYDA5Sg05n">0:10 – 0:25</span></div>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family='-apple-system, "Segoe UI", "Microsoft YaHei", sans-serif' data-page-node-id="ojsnPki2YpqwnpMHdVb1FF">
+<rect width="1280" height="720" fill="#0E1116" data-page-node-id="wkgw4rYcbKoGj0gdWq4xDq"/>
+<defs data-page-node-id="j9t3ZmY2ZukdMeHNslICEF">
+<marker id="f2a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" data-page-node-id="PUDEsCmlraZoEHiw2DdUo1"><path d="M2 1L8 5L2 9" fill="none" stroke="#5C6B7E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="pm7Ng0dJTwxbZZ7Fhe4wTD"/></marker>
+</defs>
+<text x="80" y="90" font-size="40" font-weight="500" fill="#EEF2F8" data-page-node-id="WFE4bMsHbkeZFJUI5NPPLL">一张表看完三种写法</text>
+<text x="80" y="134" font-size="19" fill="#94A2B5" data-page-node-id="BEEGSgitVxDw9gNNWpPmH8">主线：那个“想一步、做一步”的循环，控制权在谁手里</text>
+<rect x="80" y="190" width="1120" height="66" fill="#141922" data-page-node-id="q30WHB6cVjYJJ3Q4KFd0mw"/>
+<text x="400" y="223" font-size="20" font-weight="500" fill="#7C8899" text-anchor="middle" dominant-baseline="central" data-page-node-id="rNRy5oN4WEMr45LaDR3Iqd">raw_prompt_react</text>
+<text x="720" y="223" font-size="20" font-weight="500" fill="#3E8EE0" text-anchor="middle" dominant-baseline="central" data-page-node-id="CYsbfS7E6KHXwnWw8HbjCJ">ReAct Agent</text>
+<text x="1040" y="223" font-size="20" font-weight="500" fill="#8B7FE8" text-anchor="middle" dominant-baseline="central" data-page-node-id="dHDYeMSJsPVWBRW0KtxqhX">LangGraph</text>
+<text x="96" y="294" font-size="17" fill="#5C6B7E" dominant-baseline="central" data-page-node-id="lckucHObj3zBbpqZVOS7yo">本质</text>
+<text x="400" y="294" font-size="18" fill="#C3CBD6" text-anchor="middle" dominant-baseline="central" data-page-node-id="txGdgHb9ULYfKCQXopnjqN">手写文本模板</text>
+<text x="720" y="294" font-size="18" fill="#8FC4F0" text-anchor="middle" dominant-baseline="central" data-page-node-id="blSw5ZA9IX1HQ8MEfVi8FN">推理 + 行动范式</text>
+<text x="1040" y="294" font-size="18" fill="#B7AEF5" text-anchor="middle" dominant-baseline="central" data-page-node-id="VKgJBegLWZhOQfP6gxGnbK">状态机编排框架</text>
+<text x="96" y="370" font-size="17" fill="#5C6B7E" dominant-baseline="central" data-page-node-id="YFiyJJgWUUdRJHGmUTidNH">循环控制</text>
+<text x="400" y="370" font-size="18" fill="#C3CBD6" text-anchor="middle" dominant-baseline="central" data-page-node-id="eI4tF9jGrRCFp6UZbkEOn5">自己手写 while</text>
+<text x="720" y="370" font-size="18" fill="#8FC4F0" text-anchor="middle" dominant-baseline="central" data-page-node-id="TKCt8l709nqbYbJ89OGIRh">框架接管</text>
+<text x="1040" y="370" font-size="18" fill="#B7AEF5" text-anchor="middle" dominant-baseline="central" data-page-node-id="ZoI8e9EXtzReCYmiWNGbm1">你自己画成图</text>
+<text x="96" y="446" font-size="17" fill="#5C6B7E" dominant-baseline="central" data-page-node-id="XsUCy8fV88kwhGmOxRdWW7">状态管理</text>
+<text x="400" y="446" font-size="18" fill="#C3CBD6" text-anchor="middle" dominant-baseline="central" data-page-node-id="Qm0zN8DP3p4W6aPDxROXcz">字符串拼接</text>
+<text x="720" y="446" font-size="18" fill="#8FC4F0" text-anchor="middle" dominant-baseline="central" data-page-node-id="TMmQgvVFXr6fuZfdjBKCsD">对话历史 · Memory</text>
+<text x="1040" y="446" font-size="18" fill="#B7AEF5" text-anchor="middle" dominant-baseline="central" data-page-node-id="5NYIt3FiquDJBt58VkWMey">结构化 State + 存档</text>
+<text x="96" y="522" font-size="17" fill="#5C6B7E" dominant-baseline="central" data-page-node-id="EYZbjBnya7bYy7CoX1UHlB">适用场景</text>
+<text x="400" y="522" font-size="18" fill="#C3CBD6" text-anchor="middle" dominant-baseline="central" data-page-node-id="XeOQWOSlIpzHsRFe4FOUoV">学习 · Demo</text>
+<text x="720" y="522" font-size="18" fill="#8FC4F0" text-anchor="middle" dominant-baseline="central" data-page-node-id="IJdutYQH7QEizj6VKp4ND6">工具调用 · API</text>
+<text x="1040" y="522" font-size="18" fill="#B7AEF5" text-anchor="middle" dominant-baseline="central" data-page-node-id="b8GI6glxqCPbri6Dq8ib8z">长流程 · 生产级</text>
+<line x1="80" y1="256" x2="1200" y2="256" stroke="#1C232E" stroke-width="1" data-page-node-id="AUKPgzixol0WdwB6EfJ3vf"/>
+<line x1="80" y1="332" x2="1200" y2="332" stroke="#1C232E" stroke-width="1" data-page-node-id="zrTRthTZ1ixmjweBGFvF3W"/>
+<line x1="80" y1="408" x2="1200" y2="408" stroke="#1C232E" stroke-width="1" data-page-node-id="Y3zbVMEvuytc9vDRODd7L0"/>
+<line x1="80" y1="484" x2="1200" y2="484" stroke="#1C232E" stroke-width="1" data-page-node-id="j3lSDU7h9MrXaIpxw6BHWF"/>
+<line x1="80" y1="560" x2="1200" y2="560" stroke="#1C232E" stroke-width="1" data-page-node-id="aIY5yTQwIa27TPUsmvSkfB"/>
+<line x1="240" y1="190" x2="240" y2="560" stroke="#1C232E" stroke-width="1" data-page-node-id="lPrHto048ru1TpULoCL8Sa"/>
+<line x1="560" y1="190" x2="560" y2="560" stroke="#1C232E" stroke-width="1" data-page-node-id="DITpyFrcXmjthFQ5r3pSyM"/>
+<line x1="880" y1="190" x2="880" y2="560" stroke="#1C232E" stroke-width="1" data-page-node-id="RGupzMH1hHVFAIAHDRR56U"/>
+<line x1="400" y1="620" x2="1032" y2="620" stroke="#5C6B7E" stroke-width="1" marker-end="url(#f2a)" data-page-node-id="dyaEy4ROVpOZjasq2clyoG"/>
+<text x="400" y="656" font-size="16" fill="#5C6B7E" text-anchor="middle" dominant-baseline="central" data-page-node-id="LkE4i7BCsAVTabFw8F4WTz">自己造轮子</text>
+<text x="720" y="656" font-size="16" fill="#5C6B7E" text-anchor="middle" dominant-baseline="central" data-page-node-id="FnQJLA3B25QbqHHhp5lehs">交给框架</text>
+<text x="1040" y="656" font-size="16" fill="#5C6B7E" text-anchor="middle" dominant-baseline="central" data-page-node-id="bkTPJrGKUJgrzkSNLyqL8F">显式编排</text>
+</svg>
+</div>
+
+<div class="frame" data-page-node-id="pYHYJ29APtLnxWnXzZVDIQ">
+<div class="frame-head" data-page-node-id="0EZR1YhsnqQlNpswJrRfLA"><span class="idx" data-page-node-id="bH5L7y6U4MpD8f5ujTnTZg">03</span><span class="frame-name" data-page-node-id="XVD2oKOwtfPd30T8RMXiSa">第一层 · 手写 ReAct 循环</span><span class="frame-time" data-page-node-id="1r1AX9Na34ZL1anRAlVdbe">0:25 – 0:55</span></div>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family='-apple-system, "Segoe UI", "Microsoft YaHei", sans-serif' data-page-node-id="TiIYqoP8esF2TiVTNRh5OQ">
+<rect width="1280" height="720" fill="#0E1116" data-page-node-id="QeATEltRAxBducs40a6DdF"/>
+<defs data-page-node-id="P99gCGdIvKpbSRMz0bFOJV">
+<marker id="f3a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" data-page-node-id="gRLjaAnGqANPiFJvkYxECC"><path d="M2 1L8 5L2 9" fill="none" stroke="#3E4A5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="KKdQf8EQ9HSzcc0gWZBAtc"/></marker>
+<marker id="f3b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" data-page-node-id="vbg515Aq5YlJcgspwm0k9W"><path d="M2 1L8 5L2 9" fill="none" stroke="#F0A030" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="OkQ8qcmutoPwklzO2q7zF9"/></marker>
+</defs>
+<text x="80" y="90" font-size="40" font-weight="500" fill="#EEF2F8" data-page-node-id="lhqCtCrVtbCj0skqoAmhre">第一层 · 手写 prompt 版 ReAct</text>
+<text x="80" y="134" font-size="19" fill="#94A2B5" data-page-node-id="ULqduAGyUY8OeH9lsErnLo">本质：字符串拼接 + 一个 while 循环，循环完全由你实现</text>
+<rect x="80" y="280" width="190" height="110" rx="12" fill="#161B23" stroke="#242C38" stroke-width="0.5" data-page-node-id="DQ22tEiGvatZPuUr8hsUa5"/>
+<text x="175" y="322" font-size="21" fill="#EEF2F8" text-anchor="middle" dominant-baseline="central" data-page-node-id="LMcOxVlNjBEN3gnty7qqOV">拼接 Prompt</text>
+<text x="175" y="356" font-size="15" fill="#5C6B7E" text-anchor="middle" dominant-baseline="central" data-page-node-id="ocHYATtcOEWcvr8TO8VaQU">模板 + 历史</text>
+<rect x="312" y="280" width="190" height="110" rx="12" fill="#161B23" stroke="#242C38" stroke-width="0.5" data-page-node-id="rl90UsqtAaDBgmY3Cghx9G"/>
+<text x="407" y="322" font-size="21" fill="#EEF2F8" text-anchor="middle" dominant-baseline="central" data-page-node-id="xr2xIcIpmX7zIK7j9PwxYa">LLM 推理</text>
+<text x="407" y="356" font-size="15" fill="#5C6B7E" text-anchor="middle" dominant-baseline="central" data-page-node-id="DBqc3IYkQe8Fma6MEuU5pm">Thought / Action</text>
+<rect x="544" y="280" width="190" height="110" rx="12" fill="#241A0C" stroke="#F0A030" stroke-width="1" data-page-node-id="DwanqWkkdCogD8ebPYzLG6"/>
+<text x="639" y="322" font-size="21" fill="#F0A030" text-anchor="middle" dominant-baseline="central" data-page-node-id="8MYLBOCxhvkIatPBD23FCA">正则解析</text>
+<text x="639" y="356" font-size="15" fill="#C08A4A" text-anchor="middle" dominant-baseline="central" data-page-node-id="gAPGJrZ8vXfNBLvUyk5MGv">提取 Action</text>
+<rect x="776" y="280" width="190" height="110" rx="12" fill="#161B23" stroke="#242C38" stroke-width="0.5" data-page-node-id="JHpIVhFKsakOEv5ybhPapf"/>
+<text x="871" y="322" font-size="21" fill="#EEF2F8" text-anchor="middle" dominant-baseline="central" data-page-node-id="Z9Cg5M5IRKS2LDCD9SEMvC">调用工具</text>
+<text x="871" y="356" font-size="15" fill="#5C6B7E" text-anchor="middle" dominant-baseline="central" data-page-node-id="8J4XaniVSMqCS3mJETVMwJ">search / API</text>
+<rect x="1008" y="280" width="190" height="110" rx="12" fill="#161B23" stroke="#242C38" stroke-width="0.5" data-page-node-id="z15eTHNz9efFfcRlY3iFo8"/>
+<text x="1103" y="322" font-size="21" fill="#EEF2F8" text-anchor="middle" dominant-baseline="central" data-page-node-id="nqMxCfZgnAXwNKXZ8K7Hwq">结果拼回</text>
+<text x="1103" y="356" font-size="15" fill="#5C6B7E" text-anchor="middle" dominant-baseline="central" data-page-node-id="8SO38XrSmN2M8yFe3BIKCc">Observation</text>
+<line x1="270" y1="335" x2="306" y2="335" stroke="#3E4A5A" stroke-width="1.5" marker-end="url(#f3a)" data-page-node-id="tP5ObPEveRJ7W0Hvf00Jwm"/>
+<line x1="502" y1="335" x2="538" y2="335" stroke="#3E4A5A" stroke-width="1.5" marker-end="url(#f3a)" data-page-node-id="bJogII0sRNAc7Wnbd3L4uA"/>
+<line x1="734" y1="335" x2="770" y2="335" stroke="#3E4A5A" stroke-width="1.5" marker-end="url(#f3a)" data-page-node-id="eWb9m66s1BJwD3eh6YeZb4"/>
+<line x1="966" y1="335" x2="1002" y2="335" stroke="#3E4A5A" stroke-width="1.5" marker-end="url(#f3a)" data-page-node-id="e6qssG4SMABOin12wFXiNB"/>
+<path d="M1103 280 L1103 222 L175 222 L175 274" fill="none" stroke="#3E4A5A" stroke-width="1.5" marker-end="url(#f3a)" data-page-node-id="oaumKxePTuV1zYfu2XaFmN"/>
+<text x="640" y="204" font-size="15" fill="#5C6B7E" text-anchor="middle" dominant-baseline="central" data-page-node-id="8svMCTkRqoLrzQJOfxx6QI">循环，直到给出最终答案</text>
+<rect x="80" y="470" width="1120" height="110" rx="16" fill="#1B1308" stroke="#F0A030" stroke-width="0.5" data-page-node-id="4YAYYMF77ZOGugBjRDXF3g"/>
+<polygon points="116,502 140,544 92,544" fill="none" stroke="#F0A030" stroke-width="1.5" stroke-linejoin="round" data-page-node-id="74ipiYlpAbJyI2HG8fGwZM"/>
+<text x="116" y="535" font-size="17" fill="#F0A030" text-anchor="middle" data-page-node-id="BJeHMGPrkLGYeUzj95sKrc">!</text>
+<text x="164" y="512" font-size="22" fill="#F0A030" dominant-baseline="central" data-page-node-id="zupF4rbUD0GW0CjslDAJG2">正则解析是最脆的一环</text>
+<text x="164" y="550" font-size="17" fill="#94A2B5" dominant-baseline="central" data-page-node-id="AlOyRQYQbuMs4yGlJsEOUO">模型输出格式一变，解析就崩 —— 这也正是框架要替你解决的第一个问题</text>
+</svg>
+</div>
+
+<div class="frame" data-page-node-id="iaO2EWHNwB1LtG8GTAESJl">
+<div class="frame-head" data-page-node-id="OMoX2yRvO4bGcu5fRM7gK3"><span class="idx" data-page-node-id="Vl9J8OFkQrPleqRD2LH06e">04</span><span class="frame-name" data-page-node-id="3DhCH0CFMWVRjNqdsocQ8s">第二层 · 框架版 ReAct Agent</span><span class="frame-time" data-page-node-id="8gyiRBRTFUEEHWnF5t8m0V">0:55 – 1:25</span></div>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family='-apple-system, "Segoe UI", "Microsoft YaHei", sans-serif' data-page-node-id="WCmR23KYcoPWZVOyQemPLO">
+<rect width="1280" height="720" fill="#0E1116" data-page-node-id="KfEM0KLyzcxmMyYIeETqut"/>
+<defs data-page-node-id="zIp7i93ourNxpPZzp5eGv0">
+<marker id="f4a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" data-page-node-id="XJrqBca6MOrmuNVXlvFhaz"><path d="M2 1L8 5L2 9" fill="none" stroke="#3E8EE0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="l6ElK3SVZAxuAufYxCHfH1"/></marker>
+<marker id="f4b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" data-page-node-id="1eRzop8Cl16lE6v73YBXr4"><path d="M2 1L8 5L2 9" fill="none" stroke="#5C6B7E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="NtfrX5k8cH793NQcWYbyEt"/></marker>
+</defs>
+<text x="80" y="90" font-size="40" font-weight="500" fill="#EEF2F8" data-page-node-id="bAHHO6yd0F1bg0nQb1dleQ">第二层 · 框架版 ReAct Agent</text>
+<text x="80" y="134" font-size="19" fill="#94A2B5" data-page-node-id="GsjpDJf6ZnEhjARBldsT6P">你只交两样东西：模型 + 工具列表，循环它接管</text>
+<rect x="80" y="300" width="220" height="76" rx="12" fill="#101E2E" stroke="#3E8EE0" stroke-width="0.5" data-page-node-id="MbbBDvUeRTh5NnUfJMOZDZ"/>
+<text x="190" y="338" font-size="21" fill="#8FC4F0" text-anchor="middle" dominant-baseline="central" data-page-node-id="PlhBbYzGRleqA7ivZBe2ab">模型</text>
+<rect x="80" y="424" width="220" height="76" rx="12" fill="#101E2E" stroke="#3E8EE0" stroke-width="0.5" data-page-node-id="g9Fg5x2CXr0XfpeVP13Qmi"/>
+<text x="190" y="462" font-size="21" fill="#8FC4F0" text-anchor="middle" dominant-baseline="central" data-page-node-id="oOmDSn9E5d7DHQskTvIh28">工具列表</text>
+<path d="M300 338 L386 358" fill="none" stroke="#3E8EE0" stroke-width="1.5" marker-end="url(#f4a)" data-page-node-id="NiqQINuDso1MoK5tKziA3d"/>
+<path d="M300 462 L386 444" fill="none" stroke="#3E8EE0" stroke-width="1.5" marker-end="url(#f4a)" data-page-node-id="TZ1N9XjgC11LjhtkLWLHhk"/>
+<rect x="400" y="250" width="480" height="300" rx="26" fill="#141922" stroke="#2E3A4A" stroke-width="1" stroke-dasharray="8 6" data-page-node-id="PreYwY5z2u4c7xnPmj26rV"/>
+<text x="640" y="226" font-size="16" fill="#5C6B7E" text-anchor="middle" dominant-baseline="central" data-page-node-id="KeaB8aWxNFfMrcrD8e5DHb">看不见的循环</text>
+<text x="640" y="290" font-size="16" fill="#5C6B7E" text-anchor="middle" dominant-baseline="central" data-page-node-id="9ktFYAC4Rj8mseVsQVnnuZ">prompt 模板 · 解析 · 调用 · 重试 全包</text>
+<path d="M596 336 A62 62 0 0 1 684 336" fill="none" stroke="#3E4A5A" stroke-width="1.5" marker-end="url(#f4b)" data-page-node-id="xjye2ShCwE7E3J2oGmhtaF"/>
+<path d="M684 424 A62 62 0 0 1 596 424" fill="none" stroke="#3E4A5A" stroke-width="1.5" marker-end="url(#f4b)" data-page-node-id="UBqoIs5A0Qf8FOkFW2dbgI"/>
+<text x="640" y="380" font-size="46" fill="#5C6B7E" text-anchor="middle" dominant-baseline="central" data-page-node-id="O3Rq8krb1BUGh94X8qnzHC">?</text>
+<text x="640" y="516" font-size="17" fill="#94A2B5" text-anchor="middle" dominant-baseline="central" data-page-node-id="z3PPClZmBGWxBYPTwLRnY0">走几步？什么时候停？</text>
+<rect x="960" y="362" width="220" height="76" rx="12" fill="#1A1730" stroke="#8B7FE8" stroke-width="0.5" data-page-node-id="MejtNOygDZ1oyC4ADr3ICG"/>
+<text x="1070" y="400" font-size="21" fill="#B7AEF5" text-anchor="middle" dominant-baseline="central" data-page-node-id="81jnXBzlckRJ1D4CZ4j4Nt">最终答案</text>
+<line x1="880" y1="400" x2="952" y2="400" stroke="#5C6B7E" stroke-width="1.5" marker-end="url(#f4b)" data-page-node-id="cuTjF7HkUo7D9uJGt0dGFN"/>
+<text x="80" y="648" font-size="18" fill="#F0A030" data-page-node-id="8fkCGPWyC9GGmJ5MeP9lLE">代价：流程变成黑盒，只能靠 max_iterations 兜底</text>
+</svg>
+</div>
+
+<div class="frame" data-page-node-id="mMgntGxzDS0pERPW1oxpX4">
+<div class="frame-head" data-page-node-id="XFb7rAF9VGKEBB8llK4cMn"><span class="idx" data-page-node-id="ZLwQQAWUJrp5nktKBqsgYB">05</span><span class="frame-name" data-page-node-id="26wGOIkU5hBw1MTjY8ett7">第三层 · LangGraph 状态机</span><span class="frame-time" data-page-node-id="I7GYxykuRtbRIM1wEuKSGB">1:25 – 1:55</span></div>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family='-apple-system, "Segoe UI", "Microsoft YaHei", sans-serif' data-page-node-id="gY0JakS7NG9T78cQ52qYCm">
+<rect width="1280" height="720" fill="#0E1116" data-page-node-id="Lj4icF0X5lyjuYG0QiBHPg"/>
+<defs data-page-node-id="scvINocdHKMVRUGRH7jlUF">
+<marker id="f5a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" data-page-node-id="OjMBbPr7oGDqJhFKlykbeL"><path d="M2 1L8 5L2 9" fill="none" stroke="#3E4A5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="t0DUaiHxpzb5NEKy9UGgUp"/></marker>
+</defs>
+<text x="80" y="90" font-size="40" font-weight="500" fill="#EEF2F8" data-page-node-id="HxVjEj8c0IFwuo8ZkQMvbq">第三层 · LangGraph</text>
+<text x="80" y="134" font-size="19" fill="#94A2B5" data-page-node-id="SBYj4mANunDZLhuaOI4Zv7">把 Agent 画成一张图：节点是函数，边是条件</text>
+<circle cx="110" cy="400" r="11" fill="#2DD4AF" data-page-node-id="aVLEZYZiklorgHMoyvWBzC"/>
+<text x="110" y="436" font-size="14" fill="#5C6B7E" text-anchor="middle" dominant-baseline="central" data-page-node-id="NGzeAa9cC3pK7PCb30Cng9">START</text>
+<rect x="150" y="372" width="140" height="56" rx="10" fill="#12202F" stroke="#3E8EE0" stroke-width="0.5" data-page-node-id="XSfrdToFmnBwvYlE7NtCDw"/>
+<text x="220" y="400" font-size="20" fill="#8FC4F0" text-anchor="middle" dominant-baseline="central" data-page-node-id="PF93UZ2vLz2AtfVmAvoO2C">规划</text>
+<circle cx="340" cy="400" r="4.5" fill="#3E8EE0" data-page-node-id="9pIl4RCGy9r8CLAO0Il6pf"/>
+<rect x="395" y="300" width="160" height="56" rx="10" fill="#12202F" stroke="#3E8EE0" stroke-width="0.5" data-page-node-id="Bf8ErqFaKaxhlZULYe5h2W"/>
+<text x="475" y="328" font-size="19" fill="#8FC4F0" text-anchor="middle" dominant-baseline="central" data-page-node-id="PdpgDBn4s9ykmuvAZVspEr">调用工具</text>
+<rect x="395" y="460" width="160" height="56" rx="10" fill="#2A1B0B" stroke="#F0A030" stroke-width="0.5" data-page-node-id="lEQBNhThNVB6qjTkWZNDML"/>
+<text x="475" y="488" font-size="19" fill="#F0A030" text-anchor="middle" dominant-baseline="central" data-page-node-id="QHnIT7LvSqhPDVTk551lUW">人工审批</text>
+<rect x="620" y="372" width="150" height="56" rx="10" fill="#1A1730" stroke="#8B7FE8" stroke-width="0.5" data-page-node-id="NfXlM6kiADpFwTXhUGLjWo"/>
+<text x="695" y="400" font-size="19" fill="#B7AEF5" text-anchor="middle" dominant-baseline="central" data-page-node-id="7bdSved9TUuL9p2ST01rEg">生成答案</text>
+<circle cx="800" cy="400" r="11" fill="#8B7FE8" data-page-node-id="zK9f56fDR0n5jz8cLnKUn8"/>
+<text x="800" y="436" font-size="14" fill="#5C6B7E" text-anchor="middle" dominant-baseline="central" data-page-node-id="R5IMxjQyGCqB8ZnvZOXspp">END</text>
+<line x1="121" y1="400" x2="144" y2="400" stroke="#3E4A5A" stroke-width="1.5" marker-end="url(#f5a)" data-page-node-id="E582L1fShCjjAqs4mH9IbA"/>
+<line x1="290" y1="400" x2="330" y2="400" stroke="#3E4A5A" stroke-width="1.5" marker-end="url(#f5a)" data-page-node-id="s8E7Xh4UwlAqo2qV5Rz3k7"/>
+<path d="M340 400 L340 328 L389 328" fill="none" stroke="#3E4A5A" stroke-width="1.5" marker-end="url(#f5a)" data-page-node-id="X8LVNloupyCkBOZZC8qLEI"/>
+<text x="350" y="382" font-size="13" fill="#94A2B5" data-page-node-id="MjUnMf50fUACvXIyCfg3D3">需要工具</text>
+<path d="M340 400 L340 488 L389 488" fill="none" stroke="#F0A030" stroke-width="1.5" marker-end="url(#f5a)" data-page-node-id="tT7lCdggdNuG0QdXVJfgTB"/>
+<text x="350" y="462" font-size="13" fill="#94A2B5" data-page-node-id="xuJfWDx3Bh90uHch0QElYD">高风险</text>
+<path d="M555 328 L588 328 L588 240 L220 240 L220 366" fill="none" stroke="#3E4A5A" stroke-width="1.5" marker-end="url(#f5a)" data-page-node-id="O44mCCd5wqAgS7vUaUq7sA"/>
+<text x="410" y="224" font-size="13" fill="#94A2B5" text-anchor="middle" dominant-baseline="central" data-page-node-id="ofvpmNHDuvJAt724pq9Mk6">继续思考</text>
+<path d="M555 488 L695 488 L695 434" fill="none" stroke="#2DD4AF" stroke-width="1.5" marker-end="url(#f5a)" data-page-node-id="6SqKAhZ0IyGUHrEB2s1FQS"/>
+<text x="615" y="508" font-size="13" fill="#2DD4AF" text-anchor="middle" dominant-baseline="central" data-page-node-id="urBOHODJWmjkmt1BrTZCYZ">通过</text>
+<line x1="770" y1="400" x2="783" y2="400" stroke="#3E4A5A" stroke-width="1.5" marker-end="url(#f5a)" data-page-node-id="Mw23unTNXW6MO3IM4AZ806"/>
+<rect x="860" y="240" width="340" height="400" rx="18" fill="#161B23" stroke="#242C38" stroke-width="0.5" data-page-node-id="UBTFpXBwCqFXVPzmEWXf86"/>
+<text x="886" y="284" font-size="20" fill="#EEF2F8" dominant-baseline="central" data-page-node-id="3QU32W0Hbt3KzL7GWcKKXA">State · 结构化</text>
+<line x1="886" y1="304" x2="1174" y2="304" stroke="#242C38" stroke-width="1" data-page-node-id="QlWruJyLpXHPKlBBvzBcel"/>
+<text x="886" y="340" font-size="15" fill="#C3CBD6" font-family="Consolas, monospace" dominant-baseline="central" data-page-node-id="2ur9LLFIarzIndYzobQBQU">messages</text>
+<text x="1174" y="340" font-size="14" fill="#5C6B7E" font-family="Consolas, monospace" text-anchor="end" dominant-baseline="central" data-page-node-id="nISdRZf4dRV33Ypz2vZ5tI">list</text>
+<text x="886" y="380" font-size="15" fill="#C3CBD6" font-family="Consolas, monospace" dominant-baseline="central" data-page-node-id="RzepSE1Jas5U0GUted2Pxz">tool_calls</text>
+<text x="1174" y="380" font-size="14" fill="#5C6B7E" font-family="Consolas, monospace" text-anchor="end" dominant-baseline="central" data-page-node-id="MGSoEagZl93fLheCPLkmuK">list</text>
+<text x="886" y="420" font-size="15" fill="#C3CBD6" font-family="Consolas, monospace" dominant-baseline="central" data-page-node-id="QHQN7XgWl4rHXZDQKroPUv">retry_count</text>
+<text x="1174" y="420" font-size="14" fill="#5C6B7E" font-family="Consolas, monospace" text-anchor="end" dominant-baseline="central" data-page-node-id="hs2dYwChlumZjEAYdwCiQU">int</text>
+<text x="886" y="460" font-size="15" fill="#C3CBD6" font-family="Consolas, monospace" dominant-baseline="central" data-page-node-id="jgAa37VetvMWDCcN7nWQPl">next_step</text>
+<text x="1174" y="460" font-size="14" fill="#5C6B7E" font-family="Consolas, monospace" text-anchor="end" dominant-baseline="central" data-page-node-id="ZR3NgAkzNF1rnAvA8D422u">str</text>
+<text x="886" y="500" font-size="15" fill="#C3CBD6" font-family="Consolas, monospace" dominant-baseline="central" data-page-node-id="vfBeOa3hYqaYA2963QmYKW">user_approved</text>
+<text x="1174" y="500" font-size="14" fill="#5C6B7E" font-family="Consolas, monospace" text-anchor="end" dominant-baseline="central" data-page-node-id="c6ESOiFobBVF6aNVsogfKM">bool</text>
+<rect x="880" y="566" width="300" height="54" rx="12" fill="#0C2A24" stroke="#2DD4AF" stroke-width="0.5" data-page-node-id="QsWmDF0dIW7ZoWAC3LDQp7"/>
+<text x="1030" y="593" font-size="16" fill="#2DD4AF" text-anchor="middle" dominant-baseline="central" data-page-node-id="aAf7UGM4I7ePAYr24LHkYW">Checkpoint · 断点续跑</text>
+<text x="80" y="656" font-size="17" fill="#94A2B5" data-page-node-id="ludoUDYmZTHASQfwRxqqjU">可控：分支、循环、人工介入、中断恢复，全部显式画出来</text>
+</svg>
+</div>
+
+<div class="frame" data-page-node-id="pWzd2XGYa1chqdQhdtIdUB">
+<div class="frame-head" data-page-node-id="vE5hkBgE6DcDU1MGYDimE1"><span class="idx" data-page-node-id="XN323dBFn4wEfumuFszYDR">06</span><span class="frame-name" data-page-node-id="BTy3V3nYAz0hck6lb2Z4Zn">选择标准 + 收尾金句</span><span class="frame-time" data-page-node-id="aTPEKGjSK91I4aYwBJCMjp">1:55 – 2:20</span></div>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family='-apple-system, "Segoe UI", "Microsoft YaHei", sans-serif' data-page-node-id="BhgxMMlqRbAqiE9cwgOfNi">
+<rect width="1280" height="720" fill="#0E1116" data-page-node-id="RTvutWf0QNX8ptpEUzEJ37"/>
+<defs data-page-node-id="Tfbh0xKJtxH1YYskIYCvky">
+<marker id="f6a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" data-page-node-id="nbtzdu1wmEncxXGb2bH7sa"><path d="M2 1L8 5L2 9" fill="none" stroke="#5C6B7E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="1rtbFdetzONOAUuSBd74YK"/></marker>
+<marker id="f6b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" data-page-node-id="6onPuGZzLbdINfWEX83HE3"><path d="M2 1L8 5L2 9" fill="none" stroke="#3E8EE0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="GwAORg6bv6da3eXxqygBqk"/></marker>
+<marker id="f6c" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse" data-page-node-id="dcyCDrmtRRmUwFFLqbtrCL"><path d="M2 1L8 5L2 9" fill="none" stroke="#8B7FE8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="LbKMSGwmfoCxMB4PeggBaU"/></marker>
+</defs>
+<text x="80" y="110" font-size="44" font-weight="500" fill="#EEF2F8" data-page-node-id="PfiK47MyY5Oqd5475RoAQi">怎么选？</text>
+<text x="80" y="158" font-size="19" fill="#94A2B5" data-page-node-id="P57R3UjLEl34XY0FiIfFZY">按流程复杂度决定，不是越复杂越好</text>
+<rect x="80" y="210" width="1120" height="88" rx="14" fill="#161B23" data-page-node-id="RTpzEnOLpxFk90PkdkSEOC"/>
+<rect x="80" y="210" width="6" height="88" rx="3" fill="#7C8899" data-page-node-id="ErAATrUjE9h67trSJGjiDd"/>
+<text x="124" y="266" font-size="24" fill="#EEF2F8" dominant-baseline="central" data-page-node-id="Pr3Mrsf7Svq4yzTQsrVLXi">只是学原理，值得手写一遍</text>
+<line x1="620" y1="254" x2="662" y2="254" stroke="#5C6B7E" stroke-width="1.5" marker-end="url(#f6a)" data-page-node-id="rDWfiWtCV5ExARmKaSoxt9"/>
+<text x="700" y="266" font-size="24" fill="#A9B4C2" dominant-baseline="central" data-page-node-id="glYCMyWKceKGnUTcgjl6w6">手写 ReAct，值得</text>
+<rect x="80" y="322" width="1120" height="88" rx="14" fill="#161B23" data-page-node-id="I48RvI81A5aQJidiGygteZ"/>
+<rect x="80" y="322" width="6" height="88" rx="3" fill="#3E8EE0" data-page-node-id="7XCgXj7KfsTMt8kUENnC2U"/>
+<text x="124" y="378" font-size="24" fill="#EEF2F8" dominant-baseline="central" data-page-node-id="h3Jsewn0S68TiZgLl9QGX9">流程线性、工具就那几个</text>
+<line x1="620" y1="366" x2="662" y2="366" stroke="#3E8EE0" stroke-width="1.5" marker-end="url(#f6b)" data-page-node-id="a1fNCUfSi0LKD84QMGP3YW"/>
+<text x="700" y="378" font-size="24" fill="#8FC4F0" dominant-baseline="central" data-page-node-id="8X95yYmJBWPzpo6sCyyE21">ReAct Agent 够用，别过度设计</text>
+<rect x="80" y="434" width="1120" height="88" rx="14" fill="#161B23" data-page-node-id="xhfDOeLOXdG95uvBOaeuSx"/>
+<rect x="80" y="434" width="6" height="88" rx="3" fill="#8B7FE8" data-page-node-id="dsfo43JqKDETNE5ZzDIqdT"/>
+<text x="124" y="490" font-size="24" fill="#EEF2F8" dominant-baseline="central" data-page-node-id="CfyCHp4kIygpEanL4KQ23j">要分支、要审批、要断点续跑</text>
+<line x1="620" y1="478" x2="662" y2="478" stroke="#8B7FE8" stroke-width="1.5" marker-end="url(#f6c)" data-page-node-id="QFHGjQWmHMT2SC18Y8QCrB"/>
+<text x="700" y="490" font-size="24" fill="#B7AEF5" dominant-baseline="central" data-page-node-id="2DwnIk6kpviGdkeMXH5qCG">上 LangGraph</text>
+<rect x="80" y="570" width="1120" height="110" rx="18" fill="#141922" stroke="#8B7FE8" stroke-width="0.5" data-page-node-id="k6ujSEMZc65C40WP7LO7u4"/>
+<text x="640" y="616" font-size="30" fill="#EEF2F8" text-anchor="middle" dominant-baseline="central" data-page-node-id="6D06PiCc0Gg44H6jtOjNCO">ReAct 是思路 · Agent 是封装 · LangGraph 是编排</text>
+<text x="640" y="654" font-size="18" fill="#94A2B5" text-anchor="middle" dominant-baseline="central" data-page-node-id="8ZXPlFJsxJO3xhAy51Xry3">想清楚循环的控制权在谁手上，你就知道该选哪个</text>
+</svg>
+</div>
+
+</div>

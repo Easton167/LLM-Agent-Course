@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deep Agents 课件：从 Shallow Agent 到 Agent Harness</title>
+<style>
+  :root {
+    --bg: #f4f5f6;
+    --panel: #ffffff;
+    --text: #1d2329;
+    --muted: #5b6670;
+    --line: #d3d8dd;
+    --accent: #0b6e8a;
+    --accent-weak: #e3f0f4;
+    --warn: #b45309;
+    --warn-weak: #fdf1e3;
+    --bad: #b42318;
+    --bad-weak: #fbe9e7;
+    --ok: #2f7d32;
+    --ok-weak: #e7f3e8;
+    --code-bg: #1e2329;
+    --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.7 -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  }
+  /* ---------- layout ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 20; height: 48px;
+    display: flex; align-items: center; gap: 16px; padding: 0 20px;
+    background: #20262c; color: #e8ecef; border-bottom: 3px solid var(--accent);
+  }
+  .topbar b { font-size: 15px; letter-spacing: .5px; }
+  .topbar .sub { color: #9aa6b0; font-size: 13px; }
+  .topbar .spacer { flex: 1; }
+  .topbar button {
+    background: transparent; color: #e8ecef; border: 1px solid #56616b;
+    padding: 4px 12px; border-radius: 3px; cursor: pointer; font-size: 13px;
+  }
+  .topbar button:hover { border-color: var(--accent); color: #fff; }
+  .wrap { display: grid; grid-template-columns: 240px 1fr; max-width: 1360px; margin: 0 auto; }
+  nav.toc {
+    position: sticky; top: 48px; height: calc(100vh - 48px); overflow-y: auto;
+    padding: 16px 0; border-right: 1px solid var(--line); background: #eceef0;
+  }
+  nav.toc a {
+    display: block; padding: 5px 18px; color: var(--muted); text-decoration: none;
+    font-size: 13.5px; border-left: 3px solid transparent;
+  }
+  nav.toc a:hover { color: var(--text); background: #e2e5e8; }
+  nav.toc a.active { color: var(--accent); border-left-color: var(--accent); background: #e2e9ec; font-weight: 600; }
+  nav.toc .num { display: inline-block; width: 26px; font-family: var(--mono); font-size: 12px; }
+  main { padding: 24px 36px 80px; min-width: 0; }
+
+  section.slide {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+    padding: 28px 34px 30px; margin-bottom: 22px; scroll-margin-top: 64px;
+  }
+  .slide-head { display: flex; align-items: baseline; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 10px; margin-bottom: 18px; }
+  .slide-head .no { font-family: var(--mono); color: #fff; background: var(--accent); padding: 0 8px; font-size: 13px; border-radius: 2px; }
+  .slide-head h2 { margin: 0; font-size: 22px; }
+  .slide-head .en { color: var(--muted); font-size: 13px; }
+  h3 { font-size: 16.5px; margin: 22px 0 8px; padding-left: 10px; border-left: 3px solid var(--accent); }
+  p { margin: 8px 0; }
+  .lead { font-size: 16px; color: #2c353d; }
+  .muted { color: var(--muted); font-size: 13.5px; }
+  code { font-family: var(--mono); font-size: 13px; background: #eef1f3; padding: 1px 5px; border-radius: 2px; color: #0a4f63; }
+  ul { padding-left: 22px; margin: 6px 0; }
+  li { margin: 3px 0; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 1000px) {
+    .wrap { grid-template-columns: 1fr; } nav.toc { display: none; }
+    .grid2, .grid3, .grid4 { grid-template-columns: 1fr; }
+    main { padding: 16px; }
+  }
+  .box { border: 1px solid var(--line); border-radius: 3px; padding: 12px 14px; background: #fafbfb; }
+  .box h4 { margin: 0 0 6px; font-size: 14.5px; }
+  .box.accent { border-left: 4px solid var(--accent); }
+  .box.warn { border-left: 4px solid var(--warn); background: var(--warn-weak); }
+  .box.bad { border-left: 4px solid var(--bad); background: var(--bad-weak); }
+  .box.ok { border-left: 4px solid var(--ok); background: var(--ok-weak); }
+  .callout { border: 1px solid #b7d3dc; background: var(--accent-weak); padding: 10px 14px; border-radius: 3px; margin: 12px 0; }
+  .callout b { color: var(--accent); }
+
+  .tag { display: inline-block; font-size: 12px; padding: 0 7px; border-radius: 2px; border: 1px solid; line-height: 20px; margin-right: 4px; font-family: var(--mono); }
+  .tag.a { color: var(--accent); border-color: #9cc6d3; background: var(--accent-weak); }
+  .tag.w { color: var(--warn); border-color: #ecc58f; background: var(--warn-weak); }
+  .tag.r { color: var(--bad); border-color: #ecaaa3; background: var(--bad-weak); }
+  .tag.g { color: var(--ok); border-color: #a9d3ab; background: var(--ok-weak); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 10px 0; }
+  th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: #edf0f2; font-weight: 600; white-space: nowrap; }
+  tr:nth-child(even) td { background: #fafbfb; }
+
+  pre {
+    background: var(--code-bg); color: #d6dde3; padding: 14px 16px; border-radius: 3px;
+    overflow-x: auto; font: 13px/1.6 var(--mono); margin: 10px 0; border-left: 3px solid var(--accent);
+  }
+  pre .c { color: #7d8b96; font-style: italic; }
+  pre .s { color: #a5d6a7; }
+  pre .k { color: #f0a868; }
+  pre .f { color: #82c7e0; }
+  .code-title { font-family: var(--mono); font-size: 12px; color: var(--muted); margin: 12px 0 -6px; }
+
+  figure { margin: 14px 0; }
+  figure svg { width: 100%; height: auto; display: block; background: #fbfcfc; border: 1px solid var(--line); border-radius: 3px; }
+  figcaption { font-size: 12.5px; color: var(--muted); text-align: center; margin-top: 6px; }
+  svg text { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+
+  /* cover */
+  section.slide.cover { background: #20262c; color: #e8ecef; border-color: #20262c; padding: 46px 40px; }
+  .cover h1 { font-size: 34px; margin: 6px 0 10px; letter-spacing: 1px; }
+  .cover .kicker { font-family: var(--mono); color: #7fc3d6; font-size: 13px; }
+  .cover p { color: #b9c3cb; max-width: 820px; }
+  .cover .meta { display: flex; gap: 26px; margin-top: 22px; flex-wrap: wrap; }
+  .cover .meta div { border-left: 2px solid var(--accent); padding-left: 10px; font-size: 13px; color: #9aa6b0; }
+  .cover .meta b { display: block; color: #fff; font-size: 14px; }
+  .cover a { color: #7fc3d6; }
+
+  .quiz li { margin-bottom: 8px; }
+  details { border: 1px solid var(--line); border-radius: 3px; padding: 8px 12px; margin: 8px 0; background: #fafbfb; }
+  details summary { cursor: pointer; font-weight: 600; }
+
+  /* presentation mode */
+  body.present nav.toc { display: none; }
+  body.present .wrap { grid-template-columns: 1fr; max-width: 1200px; }
+  body.present section.slide { display: none; min-height: calc(100vh - 110px); }
+  body.present section.slide.current { display: block; }
+  body.present main { padding-top: 18px; }
+  .pager { display: none; font-family: var(--mono); font-size: 13px; color: #9aa6b0; }
+  body.present .pager { display: inline; }
+
+  /* modular reveal (present mode) */
+  body.present .reveal-step {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .3s ease, visibility .3s ease;
+  }
+  body.present .reveal-step.is-shown {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+  body:not(.present) .reveal-step { opacity: 1; visibility: visible; }
+  .step-ind { display: none; font-family: var(--mono); font-size: 12px; color: #9aa6b0; margin-right: 10px; }
+  body.present .step-ind { display: inline; }
+  .topbar .hint { display: none; font-size: 12px; color: #7a8790; margin-right: 12px; }
+  body.present .topbar .hint { display: inline; }
+</style>
+</head>
+<body>
+
+<!-- shared svg defs -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4a5560"/>
+    </marker>
+    <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0b6e8a"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b42318"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="6" height="6" fill="#fbe9e7"/><line x1="0" y1="0" x2="0" y2="6" stroke="#e8a59c" stroke-width="2"/>
+    </pattern>
+  </defs>
+</svg>
+
+<div class="topbar">
+  <b>Deep Agents</b><span class="sub">LangChain 智能体课程 · 第 N 讲</span>
+  <span class="spacer"></span>
+  <span class="hint">演示：点击 / 空格逐步显示，全部显示后再翻页</span>
+  <span class="step-ind" id="stepInd"></span>
+  <span class="pager" id="pager"></span>
+  <button id="btnPresent" title="P 进入演示；点击或空格/→ 逐步显示；← 收回；Esc 退出">演示模式 (P)</button>
+</div>
+
+<div class="wrap">
+<nav class="toc" id="toc"></nav>
+<main id="main">
+
+<!-- ================= 00 cover ================= -->
+<section class="slide cover" id="s0" data-title="封面">
+  <div class="reveal-step" data-step="1">
+<div class="kicker">LANGCHAIN · LANGGRAPH · DEEPAGENTS</div>
+  <h1>Deep Agents：让 Agent 胜任“长周期、复杂任务”</h1>
+</div>
+  <p class="reveal-step" data-step="2">Claude Code、Deep Research、Manus 等产品可长时间运行并完成大量工具调用。其共性在于一套可复用的工程结构。<br>
+  Deep Agents 把这套套路抽象成了一个开箱即用的 <b style="color:#fff">Agent Harness</b>：规划、文件系统、子agent、上下文压缩、长期记忆。</p>
+  <div class="meta reveal-step" data-step="3">
+    <div><b>学习目标</b>理解 Shallow Agent 的瓶颈与 Deep Agent 的设计</div>
+    <div><b>核心能力</b>Planning / Filesystem / SubAgent / Memory</div>
+    <div><b>动手实践</b><code style="background:#2c343b;color:#a5d6a7">create_deep_agent</code> 的典型用法</div>
+    <div><b>参考</b><a href="https://www.langchain.com/blog/deep-agents" target="_blank">LangChain Blog: Deep Agents</a></div>
+  </div>
+</section>
+
+<!-- ================= 01 why ================= -->
+<section class="slide" id="s1" data-title="为什么需要 Deep Agent">
+  <div class="slide-head"><span class="no">01</span><h2>为什么需要 Deep Agent？</h2><span class="en">The ceiling of Shallow Agents</span></div>
+  <p class="lead reveal-step" data-step="1"><b>Shallow Agent</b> 指最常见的“LLM + 工具调用”循环（ReAct 循环）：模型思考 → 调工具 → 看结果 → 再思考，所有信息都堆在同一条消息历史里。</p>
+  <figure class="reveal-step" data-step="2">
+    <svg viewBox="0 0 1000 300">
+      <!-- left: shallow -->
+      <text x="20" y="28" font-size="15" font-weight="700" fill="#1d2329">Shallow Agent：一条越来越长的消息历史</text>
+      <rect x="20" y="44" width="110" height="46" rx="3" fill="#e3f0f4" stroke="#0b6e8a"/>
+      <text x="75" y="72" font-size="14" text-anchor="middle">LLM</text>
+      <rect x="220" y="44" width="110" height="46" rx="3" fill="#fff" stroke="#4a5560"/>
+      <text x="275" y="72" font-size="14" text-anchor="middle">Tools</text>
+      <path d="M130,58 L218,58" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M220,78 L132,78" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="175" y="52" font-size="11" text-anchor="middle" fill="#5b6670">tool call</text>
+      <text x="175" y="96" font-size="11" text-anchor="middle" fill="#5b6670">result</text>
+      <!-- context bar -->
+      <text x="20" y="130" font-size="12" fill="#5b6670">上下文窗口（随步骤增长）</text>
+      <rect x="20" y="138" width="440" height="30" fill="#fff" stroke="#4a5560"/>
+      <rect x="20" y="138" width="28" height="30" fill="#0b6e8a"/>
+      <text x="34" y="158" font-size="10" fill="#fff" text-anchor="middle">任务</text>
+      <rect x="48" y="138" width="70" height="30" fill="#c9d3da"/>
+      <rect x="118" y="138" width="90" height="30" fill="#b9c5ce"/>
+      <rect x="208" y="138" width="110" height="30" fill="#a9b7c2"/>
+      <rect x="318" y="138" width="142" height="30" fill="url(#hatch)" stroke="#b42318"/>
+      <text x="389" y="158" font-size="11" fill="#b42318" text-anchor="middle">超窗 / 截断</text>
+      <text x="183" y="158" font-size="10" fill="#2c353d" text-anchor="middle">搜索结果、网页、日志……</text>
+      <path d="M34,176 L34,196" stroke="#b42318" stroke-width="1.5" marker-end="url(#arrR)"/>
+      <text x="20" y="214" font-size="12" fill="#b42318">最初的任务目标被淹没在大量中间信息里</text>
+      <text x="20" y="246" font-size="12" fill="#5b6670">✗ 无计划  ✗ 无外部记忆  ✗ 无任务隔离</text>
+      <text x="20" y="268" font-size="12" fill="#5b6670">典型能力边界：5 ~ 15 步的短链路任务</text>
+
+      <line x1="500" y1="20" x2="500" y2="285" stroke="#d3d8dd" stroke-dasharray="4 4"/>
+
+      <!-- right: deep -->
+      <text x="530" y="28" font-size="15" font-weight="700" fill="#1d2329">Deep Agent：给循环加上“外挂能力”</text>
+      <rect x="680" y="110" width="140" height="56" rx="3" fill="#e3f0f4" stroke="#0b6e8a" stroke-width="2"/>
+      <text x="750" y="134" font-size="14" text-anchor="middle" font-weight="700">主 Agent</text>
+      <text x="750" y="153" font-size="11" text-anchor="middle" fill="#5b6670">LLM + Tools 循环</text>
+      <rect x="540" y="44" width="120" height="40" rx="3" fill="#fff" stroke="#4a5560"/>
+      <text x="600" y="69" font-size="13" text-anchor="middle">📋 Todo 计划</text>
+      <rect x="840" y="44" width="140" height="40" rx="3" fill="#fff" stroke="#4a5560"/>
+      <text x="910" y="69" font-size="13" text-anchor="middle">🗂 虚拟文件系统</text>
+      <rect x="540" y="196" width="120" height="40" rx="3" fill="#fff" stroke="#4a5560"/>
+      <text x="600" y="221" font-size="13" text-anchor="middle">🤖 子agent ×N</text>
+      <rect x="840" y="196" width="140" height="40" rx="3" fill="#fff" stroke="#4a5560"/>
+      <text x="910" y="221" font-size="13" text-anchor="middle">🧠 长期记忆</text>
+      <path d="M660,72 L690,108" stroke="#0b6e8a" stroke-width="1.5" marker-start="url(#arrA)" marker-end="url(#arrA)"/>
+      <path d="M840,72 L810,108" stroke="#0b6e8a" stroke-width="1.5" marker-start="url(#arrA)" marker-end="url(#arrA)"/>
+      <path d="M660,208 L690,168" stroke="#0b6e8a" stroke-width="1.5" marker-start="url(#arrA)" marker-end="url(#arrA)"/>
+      <path d="M840,208 L810,168" stroke="#0b6e8a" stroke-width="1.5" marker-start="url(#arrA)" marker-end="url(#arrA)"/>
+      <text x="530" y="268" font-size="12" fill="#2f7d32">✓ 先规划再执行  ✓ 信息落盘  ✓ 重任务隔离  ✓ 自动压缩上下文</text>
+    </svg>
+    <figcaption>图 1-1 Shallow Agent 与 Deep Agent 的结构对比</figcaption>
+  </figure>
+  <h3 class="reveal-step" data-step="3">Shallow Agent 的“天花板”</h3>
+  <div class="grid2">
+    <div class="box bad reveal-step" data-step="4"><h4>① 受限于上下文窗口</h4>完全依赖 LLM 有限的上下文作为“记忆”和“工作区”，信息一多就被遗忘或截断。</div>
+    <div class="box bad reveal-step" data-step="5"><h4>② 难以聚焦，容易偏航</h4>对话越长模型越“健忘”，在大量无关信息中忘记最初的任务目标（lost in the middle）。</div>
+    <div class="box bad reveal-step" data-step="6"><h4>③ 缺乏规划与容错</h4>没有系统性的计划、回溯和调整，一旦走上错误路径很难自行纠正。</div>
+    <div class="box bad reveal-step" data-step="7"><h4>④ 无法规模化</h4>通常只能胜任 5~15 步的短任务；需要数百步的长周期项目基本做不下来。</div>
+  </div>
+  <div class="callout reveal-step" data-step="8"><b>关键洞察：</b>瓶颈常不在模型能力上限，而在于<b>缺乏对工作记忆与任务结构的管理</b>。更强模型可抬高上限，但无法消除该结构瓶颈；Deep Agent 解决的是工程结构问题。</div>
+</section>
+
+<!-- ================= 02 origin ================= -->
+<section class="slide" id="s2" data-title="Deep Agent 从哪来">
+  <div class="slide-head"><span class="no">02</span><h2>Deep Agent 从哪来？四大支柱</h2><span class="en">Lessons from Claude Code / Deep Research / Manus</span></div>
+  <p class="lead reveal-step" data-step="1">LangChain 团队分析了 Claude Code、OpenAI Deep Research、Manus 等能“长时间干活”的产品，发现它们的底层算法依然是同一个工具调用循环，<b>差异全部在“循环之外”的四样东西</b>：</p>
+  <figure class="reveal-step" data-step="2">
+    <svg viewBox="0 0 1000 250">
+      <rect x="20" y="20" width="960" height="44" rx="3" fill="#20262c"/>
+      <text x="500" y="48" font-size="16" fill="#fff" text-anchor="middle" font-weight="700">Deep Agent  =  LLM 工具调用循环  +  四大支柱</text>
+      <g font-size="13">
+        <rect x="20" y="84" width="225" height="150" rx="3" fill="#fff" stroke="#0b6e8a"/>
+        <rect x="20" y="84" width="225" height="32" fill="#e3f0f4" stroke="#0b6e8a"/>
+        <text x="132" y="105" text-anchor="middle" font-weight="700" font-size="14">① 详细的系统提示词</text>
+        <text x="34" y="140" fill="#2c353d">• 动辄数千字，含大量示例</text>
+        <text x="34" y="162" fill="#2c353d">• 规定“如何用工具”</text>
+        <text x="34" y="184" fill="#2c353d">• 规定“何时规划 / 委派”</text>
+        <text x="34" y="214" fill="#5b6670" font-size="12">Claude Code 的提示词极长</text>
+
+        <rect x="265" y="84" width="225" height="150" rx="3" fill="#fff" stroke="#0b6e8a"/>
+        <rect x="265" y="84" width="225" height="32" fill="#e3f0f4" stroke="#0b6e8a"/>
+        <text x="377" y="105" text-anchor="middle" font-weight="700" font-size="14">② 规划工具</text>
+        <text x="279" y="140" fill="#2c353d">• write_todos 写待办清单</text>
+        <text x="279" y="162" fill="#2c353d">• 本质是个“空操作”工具</text>
+        <text x="279" y="184" fill="#2c353d">• 作用是“上下文工程”</text>
+        <text x="279" y="214" fill="#5b6670" font-size="12">让模型时刻看到计划</text>
+
+        <rect x="510" y="84" width="225" height="150" rx="3" fill="#fff" stroke="#0b6e8a"/>
+        <rect x="510" y="84" width="225" height="32" fill="#e3f0f4" stroke="#0b6e8a"/>
+        <text x="622" y="105" text-anchor="middle" font-weight="700" font-size="14">③ 子agent</text>
+        <text x="524" y="140" fill="#2c353d">• task 工具派发子任务</text>
+        <text x="524" y="162" fill="#2c353d">• 独立的全新上下文</text>
+        <text x="524" y="184" fill="#2c353d">• 只回传精简结论</text>
+        <text x="524" y="214" fill="#5b6670" font-size="12">上下文隔离 + 专业分工</text>
+
+        <rect x="755" y="84" width="225" height="150" rx="3" fill="#fff" stroke="#0b6e8a"/>
+        <rect x="755" y="84" width="225" height="32" fill="#e3f0f4" stroke="#0b6e8a"/>
+        <text x="867" y="105" text-anchor="middle" font-weight="700" font-size="14">④ 文件系统</text>
+        <text x="769" y="140" fill="#2c353d">• ls / read / write / edit</text>
+        <text x="769" y="162" fill="#2c353d">• 大内容落盘，只留引用</text>
+        <text x="769" y="184" fill="#2c353d">• 多个 agent 共享工作区</text>
+        <text x="769" y="214" fill="#5b6670" font-size="12">外部化的“工作记忆”</text>
+      </g>
+    </svg>
+    <figcaption>图 2-1 Deep Agent 的四大支柱（出自 LangChain 博客《Deep Agents》）</figcaption>
+  </figure>
+  <div class="callout reveal-step" data-step="3"><b>一句话总结：</b>Deep Agent 不是新算法，而是一套<b>上下文工程（Context Engineering）的最佳实践合集</b>。<code>deepagents</code> 库把这套实践封装成了 <code>create_deep_agent()</code> 一个函数。</div>
+</section>
+
+<!-- ================= 03 quickstart ================= -->
+<section class="slide" id="s3" data-title="快速上手">
+  <div class="slide-head"><span class="no">03</span><h2>快速上手：三个参数跑起来</h2><span class="en">What you get beyond your tools</span></div>
+  <div class="reveal-step" data-step="1">
+<p>Deep Agents 默认就带了一套更适合复杂任务的 agent loop。你只需要提供<b>模型、工具、系统提示词</b>：</p>
+  <pre class="py"># pip install -qU deepagents langchain-openai
+from deepagents import create_deep_agent
+
+def get_weather(city: str) -> str:
+    """Get weather for a given city."""
+    return f"It's always sunny in {city}!"
+
+agent = create_deep_agent(
+    model="openai:gpt-5.4",          # 也可以传入 ChatModel 实例
+    tools=[get_weather],             # 你的业务工具
+    system_prompt="You are a helpful assistant",
+)
+
+result = agent.invoke(
+    {"messages": [{"role": "user", "content": "what is the weather in sf"}]}
+)
+print(result["messages"][-1].content)</pre>
+</div>
+  <div class="reveal-step" data-step="2">
+<h3>模型到底多带了什么？</h3>
+  <p class="lead">仅传入 <code>get_weather</code> 时，harness 仍会默认挂载<b>文件系统</b>与<b>子代理</b>。先建立「默认 / 可选」心智模型，再展开具体工具。</p>
+</div>
+  <div class="grid2 reveal-step" data-step="3">
+    <div class="box ok">
+      <h4><span class="tag a">默认</span></h4>
+      <ul>
+        <li><b>文件系统</b>：笔记、报告与大结果外置存储，按需回读</li>
+        <li><b>子代理 <code>task</code></b>：委派繁杂子任务，主 agent 仅接收结论</li>
+      </ul>
+      <p class="muted" style="margin:8px 0 0">另含 Summarization、PatchToolCalls 与提示词缓存等辅助能力，下一节拆中间件栈时再述。</p>
+    </div>
+    <div class="box warn">
+      <h4><span class="tag w">可选</span></h4>
+      <ul>
+        <li><b>规划 <code>write_todos</code></b>：v0.7+ <b>不再默认</b>，要显式 <code>TodoListMiddleware()</code></li>
+        <li><code>memory=</code> / <code>skills=</code>：常驻偏好 vs 按需技能</li>
+        <li><code>interrupt_on</code> / <code>permissions=</code>：人工审批与路径级权限</li>
+      </ul>
+    </div>
+  </div>
+  <div class="reveal-step" data-step="4">
+<table>
+    <tr><th></th><th>能力</th><th>要点</th></tr>
+    <tr><td><span class="tag a">默认</span></td><td>文件工具（含 <code>delete</code>※）· <code>task</code></td><td>外置工作区 + 委派</td></tr>
+    <tr><td><span class="tag w">可选</span></td><td><code>write_todos</code></td><td>长任务再挂 TodoList</td></tr>
+    <tr><td><span class="tag w">可选</span></td><td>memory / skills / HITL / permissions</td><td>记忆、技能、审批、路径权限</td></tr>
+  </table>
+  <p class="muted">※ <code>delete</code> 需 deepagents≥0.7；后端不支持删除时，工具会自动隐藏。沙箱后端才有 <code>execute</code>。</p>
+</div>
+  <div class="callout reveal-step" data-step="5"><b>说明：</b>返回的 <code>agent</code> 为已编译的 <b>LangGraph 图</b>，可直接使用 <code>invoke</code> / <code>stream</code> / <code>checkpointer</code>。</div>
+</section>
+
+<!-- ================= 04 architecture ================= -->
+<section class="slide" id="s4" data-title="整体架构：中间件栈">
+  <div class="slide-head"><span class="no">04</span><h2>整体架构：基于中间件的 Harness</h2><span class="en">Middleware stack</span></div>
+  <p class="lead reveal-step" data-step="1"><code>create_deep_agent</code> 本质上是 LangChain 1.x 的 <code>create_agent</code> + 一组预置中间件。每一项能力都是一个可替换、可关闭的中间件。</p>
+  <figure class="reveal-step" data-step="2">
+    <svg viewBox="0 0 1000 400">
+      <text x="20" y="26" font-size="13" fill="#5b6670">用户请求</text>
+      <rect x="20" y="36" width="130" height="36" rx="3" fill="#fff" stroke="#4a5560"/>
+      <text x="85" y="59" font-size="13" text-anchor="middle">messages</text>
+      <path d="M150,54 L218,54" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <rect x="220" y="20" width="560" height="366" rx="3" fill="#f4f8f9" stroke="#0b6e8a" stroke-width="1.5" stroke-dasharray="6 3"/>
+      <text x="236" y="42" font-size="13" fill="#0b6e8a" font-weight="700">create_deep_agent()  —  Agent Harness</text>
+
+      <g font-size="13">
+        <rect x="240" y="56" width="520" height="34" fill="#fff" stroke="#9aa6b0"/>
+        <text x="254" y="78" font-weight="700">FilesystemMiddleware</text><text x="560" y="78" fill="#5b6670">文件工具 + 大结果落盘</text>
+        <rect x="240" y="94" width="520" height="34" fill="#fff" stroke="#9aa6b0"/>
+        <text x="254" y="116" font-weight="700">SubAgentMiddleware</text><text x="560" y="116" fill="#5b6670">task + general-purpose 子agent</text>
+        <rect x="240" y="132" width="520" height="34" fill="#fff" stroke="#9aa6b0"/>
+        <text x="254" y="154" font-weight="700">SummarizationMiddleware</text><text x="560" y="154" fill="#5b6670">接近窗口上限时自动摘要</text>
+        <rect x="240" y="170" width="520" height="34" fill="#fff" stroke="#9aa6b0"/>
+        <text x="254" y="192" font-weight="700">PatchToolCalls (+ Prompt Caching)</text><text x="560" y="192" fill="#5b6670">修悬空调用 / 支持时缓存</text>
+        <rect x="240" y="208" width="520" height="34" fill="#fdf1e3" stroke="#d9a35b"/>
+        <text x="254" y="230" font-weight="700">TodoListMiddleware</text><text x="560" y="230" fill="#b45309">可选：write_todos 规划（v0.7+）</text>
+        <rect x="240" y="246" width="520" height="34" fill="#fdf1e3" stroke="#d9a35b"/>
+        <text x="254" y="268" font-weight="700">Memory / Skills / HITL</text><text x="560" y="268" fill="#b45309">可选：memory= · skills= · interrupt_on</text>
+        <rect x="240" y="284" width="520" height="34" fill="#fdf1e3" stroke="#d9a35b" stroke-dasharray="4 3"/>
+        <text x="254" y="306" font-weight="700">你的自定义 Middleware…</text><text x="560" y="306" fill="#b45309">可选：middleware=[...]</text>
+      </g>
+      <rect x="240" y="330" width="250" height="42" rx="3" fill="#e3f0f4" stroke="#0b6e8a"/>
+      <text x="365" y="356" font-size="14" text-anchor="middle" font-weight="700">LLM（model）</text>
+      <rect x="510" y="330" width="250" height="42" rx="3" fill="#fff" stroke="#4a5560"/>
+      <text x="635" y="356" font-size="14" text-anchor="middle">Tools（内置 + 你的）</text>
+      <path d="M490,344 L508,344" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M510,360 L492,360" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- runtime side -->
+      <rect x="810" y="56" width="170" height="316" rx="3" fill="#20262c"/>
+      <text x="895" y="82" font-size="13" fill="#7fc3d6" text-anchor="middle" font-weight="700">LangGraph Runtime</text>
+      <g font-size="12" fill="#d6dde3">
+        <text x="826" y="114">• Checkpointer 持久化</text>
+        <text x="826" y="140">• Streaming 流式输出</text>
+        <text x="826" y="166">• Interrupt 人工介入</text>
+        <text x="826" y="192">• Store 跨线程存储</text>
+        <text x="826" y="218">• 断点恢复 / 重放</text>
+        <text x="826" y="244">• LangSmith 追踪</text>
+      </g>
+      <text x="895" y="300" font-size="11" fill="#9aa6b0" text-anchor="middle">编译后的 agent</text>
+      <text x="895" y="318" font-size="11" fill="#9aa6b0" text-anchor="middle">就是一个 LangGraph 图</text>
+      <path d="M780,200 L808,200" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+    </svg>
+    <figcaption>图 4-1 Deep Agent 中间件栈（灰色≈默认；橙色=可选，含 v0.7 起改为 opt-in 的规划）</figcaption>
+  </figure>
+  <div class="callout reveal-step" data-step="3"><b>设计哲学：</b>“能力 = 中间件”。中间件可以<b>注入系统提示词、注册工具、改写模型请求、拦截工具结果</b>。因此既可采用默认配置，也可逐项替换或关闭。</div>
+</section>
+
+<!-- ================= 05 planning ================= -->
+<section class="slide" id="s5" data-title="能力一：规划与执行">
+  <div class="slide-head"><span class="no">05</span><h2>能力一：规划与执行（可选）</h2><span class="en">Opt-in planning · TodoListMiddleware</span></div>
+  <div class="callout reveal-step" data-step="1"><b>v0.7 变更：</b>任务规划改为 <b>opt-in</b>。需要待办清单时，显式传入 <code>TodoListMiddleware</code>；未开启则没有 <code>write_todos</code>。</div>
+  <pre class="py reveal-step" data-step="2">from deepagents import create_deep_agent
+from langchain.agents.middleware import TodoListMiddleware
+
+agent = create_deep_agent(
+    model="openai:gpt-5.4",
+    middleware=[TodoListMiddleware()],  # 开启后才有 write_todos
+)</pre>
+  <div class="grid2 reveal-step" data-step="3">
+    <div>
+      <p class="lead">开启后，<code>write_todos</code> <b>不调用外部系统</b>，只将待办清单写入 agent 的状态（state）。</p>
+      <p>有效原因：</p>
+      <ul>
+        <li><b>强制先想后做</b>：开始前先把大任务拆成可执行步骤；</li>
+        <li><b>对抗遗忘</b>：每次更新清单，计划会重新出现在上下文末尾，目标保持可见；</li>
+        <li><b>动态调整</b>：发现新信息后可以增删改步骤，支持回溯纠错；</li>
+        <li><b>可观测</b>：前端可实时展示进度，便于跟踪 agent 当前步骤。</li>
+      </ul>
+      <div class="callout"><b>类比：</b>大型任务启动前列 checklist，完成后逐项勾销。</div>
+    </div>
+    <figure style="margin-top:0">
+      <svg viewBox="0 0 460 340">
+        <rect x="10" y="10" width="440" height="34" fill="#20262c"/>
+        <text x="24" y="32" font-size="13" fill="#fff" font-weight="700">state["todos"]</text>
+        <text x="436" y="32" font-size="12" fill="#9aa6b0" text-anchor="end">任务：调研 Deep Agent 并写报告</text>
+        <g font-size="13">
+          <rect x="10" y="44" width="440" height="40" fill="#e7f3e8" stroke="#d3d8dd"/>
+          <text x="24" y="69" fill="#2f7d32">✔</text><text x="46" y="69">阅读官方博客与文档</text>
+          <rect x="356" y="56" width="82" height="18" fill="#fff" stroke="#a9d3ab"/><text x="397" y="69" font-size="11" fill="#2f7d32" text-anchor="middle">completed</text>
+
+          <rect x="10" y="84" width="440" height="40" fill="#e7f3e8" stroke="#d3d8dd"/>
+          <text x="24" y="109" fill="#2f7d32">✔</text><text x="46" y="109">委派子agent调研同类产品</text>
+          <rect x="356" y="96" width="82" height="18" fill="#fff" stroke="#a9d3ab"/><text x="397" y="109" font-size="11" fill="#2f7d32" text-anchor="middle">completed</text>
+
+          <rect x="10" y="124" width="440" height="40" fill="#e3f0f4" stroke="#0b6e8a" stroke-width="1.5"/>
+          <text x="24" y="149" fill="#0b6e8a">▶</text><text x="46" y="149" font-weight="700">汇总资料写入 /notes.md</text>
+          <rect x="356" y="136" width="82" height="18" fill="#fff" stroke="#9cc6d3"/><text x="397" y="149" font-size="11" fill="#0b6e8a" text-anchor="middle">in_progress</text>
+
+          <rect x="10" y="164" width="440" height="40" fill="#fff" stroke="#d3d8dd"/>
+          <text x="24" y="189" fill="#9aa6b0">○</text><text x="46" y="189">撰写报告初稿 /report.md</text>
+          <rect x="356" y="176" width="82" height="18" fill="#fff" stroke="#d3d8dd"/><text x="397" y="189" font-size="11" fill="#5b6670" text-anchor="middle">pending</text>
+
+          <rect x="10" y="204" width="440" height="40" fill="#fff" stroke="#d3d8dd"/>
+          <text x="24" y="229" fill="#9aa6b0">○</text><text x="46" y="229">委派审稿子agent检查事实</text>
+          <rect x="356" y="216" width="82" height="18" fill="#fff" stroke="#d3d8dd"/><text x="397" y="229" font-size="11" fill="#5b6670" text-anchor="middle">pending</text>
+        </g>
+        <path d="M60,262 C60,300 200,300 230,272" fill="none" stroke="#b45309" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+        <text x="80" y="320" font-size="12" fill="#b45309">发现新信息 → 插入新步骤 / 调整顺序（重规划）</text>
+      </svg>
+      <figcaption>图 5-1 待办清单的三种状态</figcaption>
+    </figure>
+  </div>
+  <div class="reveal-step" data-step="4">
+<h3>执行循环</h3>
+  <figure>
+    <svg viewBox="0 0 1000 120">
+      <g font-size="13" text-anchor="middle">
+        <rect x="20" y="36" width="140" height="44" rx="3" fill="#e3f0f4" stroke="#0b6e8a"/><text x="90" y="63">理解任务</text>
+        <rect x="210" y="36" width="140" height="44" rx="3" fill="#e3f0f4" stroke="#0b6e8a"/><text x="280" y="63">write_todos 规划</text>
+        <rect x="400" y="36" width="160" height="44" rx="3" fill="#fff" stroke="#4a5560"/><text x="480" y="57">执行当前步骤</text><text x="480" y="73" font-size="11" fill="#5b6670">工具 / 文件 / 子agent</text>
+        <rect x="610" y="36" width="160" height="44" rx="3" fill="#e3f0f4" stroke="#0b6e8a"/><text x="690" y="57">更新 todos</text><text x="690" y="73" font-size="11" fill="#5b6670">完成 / 调整 / 新增</text>
+        <rect x="820" y="36" width="160" height="44" rx="3" fill="#e7f3e8" stroke="#2f7d32"/><text x="900" y="63">全部完成 → 输出</text>
+      </g>
+      <path d="M160,58 L208,58" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M350,58 L398,58" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M560,58 L608,58" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M770,58 L818,58" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M690,80 L690,104 L480,104 L480,82" fill="none" stroke="#0b6e8a" stroke-width="1.5" marker-end="url(#arrA)"/>
+      <text x="585" y="100" font-size="11" fill="#0b6e8a" text-anchor="middle">还有未完成项</text>
+    </svg>
+  </figure>
+</div>
+</section>
+
+<!-- ================= 06 filesystem ================= -->
+<section class="slide" id="s6" data-title="能力二：文件系统">
+  <div class="slide-head"><span class="no">06</span><h2>能力二：文件系统，外部化的工作记忆</h2><span class="en">Filesystem &amp; Backends</span></div>
+  <p class="lead reveal-step" data-step="1">上下文窗口容量有限且成本高；文件系统可承载更大工作区。Deep Agent 使模型将信息<b>写入文件并按需回读</b>。</p>
+  <div class="grid2">
+    <div class="reveal-step" data-step="2">
+      <h3>文件工具</h3>
+      <table>
+        <tr><th>工具</th><th>用途</th></tr>
+        <tr><td><code>ls</code></td><td>列出目录</td></tr>
+        <tr><td><code>read_file</code></td><td>按行分页读取（支持 offset / limit）</td></tr>
+        <tr><td><code>write_file</code></td><td>新建 / 覆盖文件</td></tr>
+        <tr><td><code>edit_file</code></td><td>精确字符串替换（与 Claude Code 风格一致）</td></tr>
+        <tr><td><code>delete</code></td><td>删除文件或目录（deepagents≥0.7；后端不支持则自动隐藏）</td></tr>
+        <tr><td><code>glob</code> / <code>grep</code></td><td>按模式找文件 / 搜内容</td></tr>
+        <tr><td><code>execute</code></td><td>沙箱后端下执行命令</td></tr>
+      </table>
+      <div class="callout"><b>权限：</b>用 <code>permissions=[FilesystemPermission(...)]</code> 做路径级 allow/deny（如只开 <code>/workspace/**</code>、拒绝 <code>.env</code>）。它约束内置文件工具，可与 HITL 互补。</div>
+      <h3>三个作用</h3>
+      <ul>
+        <li><b>草稿本</b>：笔记、中间结论、报告草稿；</li>
+        <li><b>卸载区</b>：大工具结果自动落盘（见第 08 节）；</li>
+        <li><b>协作区</b>：主 agent 与子agent通过文件交换大块内容。</li>
+      </ul>
+    </div>
+    <figure class="reveal-step" style="margin-top:0" data-step="3">
+      <svg viewBox="0 0 470 380">
+        <text x="235" y="22" font-size="13" text-anchor="middle" font-weight="700">可插拔的存储后端（Backend）</text>
+        <rect x="135" y="36" width="200" height="40" rx="3" fill="#e3f0f4" stroke="#0b6e8a"/>
+        <text x="235" y="61" font-size="13" text-anchor="middle">文件工具（统一接口）</text>
+        <path d="M235,76 L235,104" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+        <rect x="85" y="106" width="300" height="52" rx="3" fill="#20262c"/>
+        <text x="235" y="128" font-size="13" fill="#fff" text-anchor="middle" font-weight="700">CompositeBackend</text>
+        <text x="235" y="147" font-size="11" fill="#9aa6b0" text-anchor="middle">按路径前缀路由到不同后端</text>
+        <path d="M130,158 L75,206" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+        <path d="M235,158 L235,206" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+        <path d="M340,158 L395,206" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="80" y="182" font-size="11" fill="#5b6670">/ (默认)</text>
+        <text x="242" y="186" font-size="11" fill="#5b6670">/memories/</text>
+        <text x="372" y="182" font-size="11" fill="#5b6670">/workspace/</text>
+        <g font-size="12">
+          <rect x="10" y="208" width="140" height="120" rx="3" fill="#fff" stroke="#4a5560"/>
+          <text x="80" y="230" text-anchor="middle" font-weight="700">StateBackend</text>
+          <text x="22" y="254" fill="#2c353d">存在 agent state</text>
+          <text x="22" y="274" fill="#2c353d">随线程持久化</text>
+          <text x="22" y="294" fill="#2c353d">线程间不共享</text>
+          <text x="22" y="316" fill="#0b6e8a">默认 / 临时草稿</text>
+
+          <rect x="165" y="208" width="140" height="120" rx="3" fill="#fff" stroke="#4a5560"/>
+          <text x="235" y="230" text-anchor="middle" font-weight="700">StoreBackend</text>
+          <text x="177" y="254" fill="#2c353d">存在 LangGraph Store</text>
+          <text x="177" y="274" fill="#2c353d">跨线程、跨会话</text>
+          <text x="177" y="294" fill="#2c353d">可接数据库</text>
+          <text x="177" y="316" fill="#0b6e8a">长期记忆</text>
+
+          <rect x="320" y="208" width="140" height="120" rx="3" fill="#fff" stroke="#4a5560"/>
+          <text x="390" y="230" text-anchor="middle" font-weight="700">Filesystem / Sandbox</text>
+          <text x="332" y="254" fill="#2c353d">本地磁盘目录</text>
+          <text x="332" y="274" fill="#2c353d">或远程沙箱</text>
+          <text x="332" y="294" fill="#2c353d">可执行代码</text>
+          <text x="332" y="316" fill="#b45309">编码类 agent</text>
+        </g>
+        <text x="235" y="360" font-size="11" fill="#5b6670" text-anchor="middle">⚠ 本地磁盘 / 可执行后端务必配合权限控制与人工审批</text>
+      </svg>
+      <figcaption>图 6-1 文件系统后端与路径路由</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ================= 07 subagent ================= -->
+<section class="slide" id="s7" data-title="能力三：子agent隔离">
+  <div class="slide-head"><span class="no">07</span><h2>能力三：子agent与上下文隔离</h2><span class="en">SubAgents &amp; Context Isolation</span></div>
+  <p class="lead reveal-step" data-step="1">当某个子任务会产生大量工具调用、搜索结果或文件内容时，交给 <b>subagent</b> 去做。主 agent <b>仅接收最终结论</b>，中间过程不进入其上下文。</p>
+  <figure class="reveal-step" data-step="2">
+    <svg viewBox="0 0 1000 330">
+      <!-- main agent -->
+      <rect x="20" y="20" width="300" height="290" rx="3" fill="#fff" stroke="#0b6e8a" stroke-width="2"/>
+      <rect x="20" y="20" width="300" height="34" fill="#0b6e8a"/>
+      <text x="170" y="42" font-size="14" fill="#fff" text-anchor="middle" font-weight="700">主 Agent 上下文（保持干净）</text>
+      <g font-size="12">
+        <rect x="36" y="66" width="268" height="28" fill="#e3f0f4"/><text x="46" y="85">user：对比 3 个 Agent 框架</text>
+        <rect x="36" y="100" width="268" height="28" fill="#f4f5f6"/><text x="46" y="119">write_todos(…)</text>
+        <rect x="36" y="134" width="268" height="28" fill="#fdf1e3"/><text x="46" y="153">task("research-agent", "调研 A")</text>
+        <rect x="36" y="168" width="268" height="28" fill="#e7f3e8"/><text x="46" y="187">← A 的结论（约 300 字）</text>
+        <rect x="36" y="202" width="268" height="28" fill="#e7f3e8"/><text x="46" y="221">← B 的结论（约 300 字）</text>
+        <rect x="36" y="236" width="268" height="28" fill="#e7f3e8"/><text x="46" y="255">← C 的结论（约 300 字）</text>
+        <rect x="36" y="270" width="268" height="28" fill="#f4f5f6"/><text x="46" y="289">综合推理 → 最终回答</text>
+      </g>
+
+      <!-- arrows -->
+      <path d="M320,148 L438,70" stroke="#b45309" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M320,148 L438,165" stroke="#b45309" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M320,148 L438,260" stroke="#b45309" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="350" y="100" font-size="11" fill="#b45309">并行派发</text>
+
+      <!-- sub agents -->
+      <g font-size="12">
+        <rect x="440" y="30" width="330" height="80" rx="3" fill="#fafbfb" stroke="#9aa6b0"/>
+        <text x="452" y="50" font-weight="700">子agent A（全新上下文）</text>
+        <rect x="452" y="60" width="306" height="38" fill="url(#hatch)" stroke="#e8a59c"/>
+        <text x="605" y="84" text-anchor="middle" fill="#b42318">搜索 ×8 · 网页 ×12 · 约 60k tokens</text>
+
+        <rect x="440" y="125" width="330" height="80" rx="3" fill="#fafbfb" stroke="#9aa6b0"/>
+        <text x="452" y="145" font-weight="700">子agent B（全新上下文）</text>
+        <rect x="452" y="155" width="306" height="38" fill="url(#hatch)" stroke="#e8a59c"/>
+        <text x="605" y="179" text-anchor="middle" fill="#b42318">搜索 ×6 · 代码阅读 · 约 45k tokens</text>
+
+        <rect x="440" y="220" width="330" height="80" rx="3" fill="#fafbfb" stroke="#9aa6b0"/>
+        <text x="452" y="240" font-weight="700">子agent C（全新上下文）</text>
+        <rect x="452" y="250" width="306" height="38" fill="url(#hatch)" stroke="#e8a59c"/>
+        <text x="605" y="274" text-anchor="middle" fill="#b42318">搜索 ×10 · 文档 · 约 70k tokens</text>
+      </g>
+
+      <path d="M770,70 L830,70" stroke="#2f7d32" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M770,165 L830,165" stroke="#2f7d32" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M770,260 L830,260" stroke="#2f7d32" stroke-width="1.5" marker-end="url(#arr)"/>
+      <rect x="832" y="40" width="150" height="250" rx="3" fill="#e7f3e8" stroke="#2f7d32"/>
+      <text x="907" y="70" font-size="13" text-anchor="middle" font-weight="700" fill="#2f7d32">只回传</text>
+      <text x="907" y="92" font-size="13" text-anchor="middle" font-weight="700" fill="#2f7d32">最终消息</text>
+      <text x="907" y="130" font-size="12" text-anchor="middle">175k tokens 的</text>
+      <text x="907" y="150" font-size="12" text-anchor="middle">中间过程</text>
+      <text x="907" y="176" font-size="22" text-anchor="middle" fill="#2f7d32">↓</text>
+      <text x="907" y="204" font-size="12" text-anchor="middle">≈ 1k tokens</text>
+      <text x="907" y="224" font-size="12" text-anchor="middle">的精炼结论</text>
+      <text x="907" y="262" font-size="11" text-anchor="middle" fill="#5b6670">中间过程随子agent销毁</text>
+    </svg>
+    <figcaption>图 7-1 上下文隔离：子 agent 消化中间过程，主 agent 仅接收结论（token 数为示意）</figcaption>
+  </figure>
+  <div class="grid2 reveal-step" data-step="3">
+    <div>
+      <h3>工作方式</h3>
+      <ol>
+        <li>主 agent 拥有 <code>task</code> 工具（参数：子agent类型 + 任务描述）；</li>
+        <li>子agent用<b>自己的新上下文</b>执行，拥有自己的工具与提示词；</li>
+        <li>完成后返回一条<b>简洁结果</b>作为 <code>task</code> 的工具结果；</li>
+        <li>主 agent 基于结果继续推理。多个 <code>task</code> 调用可以<b>并行</b>。</li>
+      </ol>
+      <p class="muted">默认总有一个 <code>general-purpose</code> 子agent：与主 agent 同提示词同工具，用于上下文隔离。</p>
+    </div>
+    <div>
+<div class="code-title">自定义子agent</div>
+<pre class="py">research_subagent = {
+    "name": "research-agent",
+    "description": "深入研究单个主题。一次只给它一个主题。",
+    "system_prompt": "你是严谨的研究员，最终只输出结论与引用来源。",
+    "tools": [internet_search],
+    "model": "openai:gpt-5.4-mini",   # 可选：子agent用更便宜的模型
+}
+
+agent = create_deep_agent(
+    model="openai:gpt-5.4",
+    tools=[internet_search],
+    system_prompt=RESEARCH_INSTRUCTIONS,
+    subagents=[research_subagent],
+)</pre>
+    </div>
+  </div>
+  <div class="callout reveal-step" data-step="4"><b>适用场景：</b>研究调研、代码库分析、长文档整理、多方案并行评估。<b>关键技巧：</b><code>description</code> 决定主 agent 何时调用它，要写清楚“做什么、什么时候用、输入粒度”。</div>
+</section>
+
+<!-- ================= 08 compression ================= -->
+<section class="slide" id="s8" data-title="能力四：上下文压缩">
+  <div class="slide-head"><span class="no">08</span><h2>能力四：上下文压缩</h2><span class="en">Offloading &amp; Summarization</span></div>
+  <p class="lead reveal-step" data-step="1">即便使用文件系统与子 agent，长会话仍会使上下文持续增长。Deep Agents 内置两种<b>自动</b>压缩机制：</p>
+  <figure class="reveal-step" data-step="2">
+    <svg viewBox="0 0 1000 300">
+      <!-- offloading -->
+      <text x="20" y="26" font-size="14" font-weight="700">A. Offloading（卸载）：大内容落盘，历史里只留引用</text>
+      <rect x="20" y="40" width="200" height="50" rx="3" fill="#fff" stroke="#4a5560"/>
+      <text x="120" y="62" font-size="13" text-anchor="middle">工具返回 80KB 网页</text>
+      <text x="120" y="80" font-size="11" text-anchor="middle" fill="#5b6670">超过阈值</text>
+      <path d="M220,65 L298,65" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <rect x="300" y="40" width="200" height="50" rx="3" fill="#20262c"/>
+      <text x="400" y="62" font-size="13" fill="#fff" text-anchor="middle">写入文件</text>
+      <text x="400" y="80" font-size="11" fill="#9aa6b0" text-anchor="middle">/large_tool_results/xxx</text>
+      <path d="M500,65 L578,65" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <rect x="580" y="40" width="400" height="50" rx="3" fill="#e7f3e8" stroke="#2f7d32"/>
+      <text x="596" y="62" font-size="12">消息历史里只保留：“结果已保存到 /large_tool_results/xxx，</text>
+      <text x="596" y="80" font-size="12">前若干行预览……需要时用 read_file 分页读取”</text>
+
+      <!-- summarization -->
+      <text x="20" y="138" font-size="14" font-weight="700">B. Summarization（摘要）：接近窗口上限时，总结旧历史、保留最近消息</text>
+      <text x="20" y="166" font-size="12" fill="#5b6670">压缩前</text>
+      <rect x="80" y="152" width="900" height="26" fill="#fff" stroke="#4a5560"/>
+      <rect x="80" y="152" width="40" height="26" fill="#0b6e8a"/><text x="100" y="170" font-size="10" fill="#fff" text-anchor="middle">系统</text>
+      <rect x="120" y="152" width="620" height="26" fill="#c9d3da"/><text x="430" y="170" font-size="11" text-anchor="middle">旧的对话与工具调用历史……</text>
+      <rect x="740" y="152" width="160" height="26" fill="#9cc6d3"/><text x="820" y="170" font-size="11" text-anchor="middle">最近消息</text>
+      <rect x="900" y="152" width="80" height="26" fill="url(#hatch)"/>
+      <line x1="900" y1="146" x2="900" y2="184" stroke="#b42318" stroke-width="2" stroke-dasharray="3 2"/>
+      <text x="900" y="198" font-size="11" fill="#b42318" text-anchor="middle">触发阈值</text>
+
+      <path d="M430,184 C430,214 260,206 230,232" fill="none" stroke="#0b6e8a" stroke-width="1.5" marker-end="url(#arrA)"/>
+      <text x="370" y="220" font-size="11" fill="#0b6e8a">LLM 生成摘要</text>
+      <text x="20" y="256" font-size="12" fill="#5b6670">压缩后</text>
+      <rect x="80" y="242" width="900" height="26" fill="#fff" stroke="#4a5560" stroke-dasharray="3 3"/>
+      <rect x="80" y="242" width="40" height="26" fill="#0b6e8a"/><text x="100" y="260" font-size="10" fill="#fff" text-anchor="middle">系统</text>
+      <rect x="120" y="242" width="140" height="26" fill="#fdf1e3" stroke="#d9a35b"/><text x="190" y="260" font-size="11" text-anchor="middle">历史摘要</text>
+      <rect x="260" y="242" width="160" height="26" fill="#9cc6d3"/><text x="340" y="260" font-size="11" text-anchor="middle">最近消息</text>
+      <text x="700" y="260" font-size="12" fill="#2f7d32" text-anchor="middle">← 腾出大量空间，任务继续运行</text>
+      <text x="20" y="290" font-size="11" fill="#5b6670">注：被摘要掉的原始历史可以同时备份到文件系统，必要时可回查。具体阈值以所用版本的默认配置为准。</text>
+    </svg>
+    <figcaption>图 8-1 两种自动压缩机制</figcaption>
+  </figure>
+  <div class="grid2">
+    <div class="box accent reveal-step" data-step="3"><h4>Offloading 解决“单次太大”</h4>一次搜索、一次读文件就可能塞进几万 token。落盘后模型按需分页读取，<b>“用多少读多少”</b>。</div>
+    <div class="box accent reveal-step" data-step="4"><h4>Summarization 解决“累积太多”</h4>几十轮之后历史本身就超窗。摘要保留目标、决策、关键事实，<b>让长会话不会因 token 爆掉而中断</b>。</div>
+  </div>
+</section>
+
+<!-- ================= 09 context engineering ================= -->
+<section class="slide" id="s9" data-title="上下文工程全景">
+  <div class="slide-head"><span class="no">09</span><h2>上下文工程全景</h2><span class="en">Context Engineering</span></div>
+  <p class="lead reveal-step" data-step="1">综合前述能力，Deep Agents 将上下文分为五类分别管理。</p>
+  <figure class="reveal-step" data-step="2">
+    <svg viewBox="0 0 1000 260">
+      <rect x="370" y="80" width="260" height="100" rx="3" fill="#20262c"/>
+      <text x="500" y="122" font-size="16" fill="#fff" text-anchor="middle" font-weight="700">模型此刻看到的</text>
+      <text x="500" y="146" font-size="16" fill="#fff" text-anchor="middle" font-weight="700">上下文窗口</text>
+      <g font-size="13">
+        <rect x="20" y="20" width="290" height="62" rx="3" fill="#e3f0f4" stroke="#0b6e8a"/>
+        <text x="34" y="44" font-weight="700">① Input context 输入上下文</text>
+        <text x="34" y="66" fill="#2c353d" font-size="12">系统提示词、memory、skills、工具说明</text>
+        <rect x="20" y="100" width="290" height="62" rx="3" fill="#fff" stroke="#4a5560"/>
+        <text x="34" y="124" font-weight="700">② Runtime context 运行时上下文</text>
+        <text x="34" y="146" fill="#2c353d" font-size="12">用户 ID、API key 等配置（不直接给模型）</text>
+        <rect x="20" y="180" width="290" height="62" rx="3" fill="#fff" stroke="#4a5560"/>
+        <text x="34" y="204" font-weight="700">③ Context compression 压缩</text>
+        <text x="34" y="226" fill="#2c353d" font-size="12">自动 offload + summary，避免超窗</text>
+        <rect x="690" y="40" width="290" height="62" rx="3" fill="#fff" stroke="#4a5560"/>
+        <text x="704" y="64" font-weight="700">④ Context isolation 隔离</text>
+        <text x="704" y="86" fill="#2c353d" font-size="12">用子agent承接重任务，只回传结论</text>
+        <rect x="690" y="150" width="290" height="62" rx="3" fill="#e3f0f4" stroke="#0b6e8a"/>
+        <text x="704" y="174" font-weight="700">⑤ Long-term memory 长期记忆</text>
+        <text x="704" y="196" fill="#2c353d" font-size="12">跨线程保存偏好、约定、进度、事实</text>
+      </g>
+      <path d="M310,51 L368,100" stroke="#0b6e8a" stroke-width="1.5" marker-end="url(#arrA)"/>
+      <path d="M310,131 L368,131" stroke="#4a5560" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+      <text x="316" y="124" font-size="10" fill="#5b6670">经工具读取</text>
+      <path d="M310,211 L368,165" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M688,71 L632,100" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M688,181 L632,160" stroke="#0b6e8a" stroke-width="1.5" marker-end="url(#arrA)"/>
+    </svg>
+    <figcaption>图 9-1 五类上下文如何汇入模型窗口</figcaption>
+  </figure>
+  <table class="reveal-step" data-step="3">
+    <tr><th>类别</th><th>放什么</th><th>谁能看到</th><th>生命周期</th></tr>
+    <tr><td>Input context</td><td>系统提示词、AGENTS.md 记忆、技能描述、工具说明</td><td>模型</td><td>每次调用</td></tr>
+    <tr><td>Runtime context</td><td>user_id、租户、API key、数据库连接</td><td>工具 / 中间件（可传递给子agent）</td><td>单次运行</td></tr>
+    <tr><td>Compression</td><td>被卸载的大结果、历史摘要</td><td>模型（按需读取）</td><td>线程内</td></tr>
+    <tr><td>Isolation</td><td>子agent的中间过程</td><td>仅子agent</td><td>子任务结束即丢弃</td></tr>
+    <tr><td>Long-term memory</td><td>用户偏好、项目约定、研究进度</td><td>模型（经文件工具）</td><td>跨线程、跨会话</td></tr>
+  </table>
+  <div class="callout reveal-step" data-step="4"><b>注意：</b>Runtime context 会传递给子agent，但<b>不会自动暴露给模型</b>。敏感信息（如 API key）应经工具或中间件读取后使用，勿写入提示词。</div>
+</section>
+
+<!-- ================= 10 memory ================= -->
+<section class="slide" id="s10" data-title="能力五：长期记忆与 Skills">
+  <div class="slide-head"><span class="no">10</span><h2>能力五：长期记忆与 Skills</h2><span class="en">memory= · skills= · Backend</span></div>
+  <p class="lead reveal-step" data-step="1">区分两套机制：<code>memory=</code> / <code>skills=</code> 决定<b>哪些文件注入或披露给模型</b>；<code>CompositeBackend</code> 决定<b>路径路由到哪个存储后端</b>。二者可并用。</p>
+  <div class="grid2">
+<div class="reveal-step" data-step="2">
+<pre class="py">from deepagents import create_deep_agent
+from deepagents.backends import CompositeBackend, StateBackend, StoreBackend
+from langgraph.store.memory import InMemoryStore  # 生产可换平台 Store
+
+store = InMemoryStore()
+agent = create_deep_agent(
+    model="openai:gpt-5.4",
+    memory=["./AGENTS.md"],           # 启动时载入常驻指令/偏好
+    skills=["./skills/"],             # 渐进披露：先 frontmatter，用时再读全文
+    backend=CompositeBackend(         # 实例 + store=，勿再写 lambda rt
+        default=StateBackend(),       # 普通文件：线程内
+        routes={"/memories/": StoreBackend(namespace=lambda _rt: ("memories",))},
+    ),
+    store=store,
+)</pre>
+      <h3>SKILL.md frontmatter（简例）</h3>
+<pre class="py">---
+name: langgraph-docs
+description: 需要准确的 LangGraph 指引时使用。
+---
+
+# langgraph-docs
+先读 docs 索引，再按需拉取相关页面。</pre>
+      <div class="callout"><b>注意：</b>把记忆文件放在 <code>/memories/</code> 下时，路径会走 StoreBackend（跨线程）；本地 <code>./AGENTS.md</code> 也可直接给 <code>memory=</code>。路径路由 ≠ <code>memory=</code> API。</div>
+    </div>
+<div>
+<div class="reveal-step" data-step="3">
+<h3>适合放进长期记忆的内容</h3>
+<div class="grid2">
+        <div class="box"><span class="tag a">偏好</span> 语言、格式、风格</div>
+        <div class="box"><span class="tag a">约定</span> 项目规范、命名、目录</div>
+        <div class="box"><span class="tag a">进度</span> 研究进行到哪一步</div>
+        <div class="box"><span class="tag a">事实</span> 反复用到的关键信息</div>
+      </div>
+</div>
+<div class="reveal-step" data-step="4">
+<h3>Memory 与 Skills 怎么分工？</h3>
+<table>
+        <tr><th></th><th>Memory（<code>memory=</code>）</th><th>Skills（<code>skills=</code>）</th></tr>
+        <tr><td>内容</td><td>一直都重要的事</td><td>按需才用的详细知识 / 流程</td></tr>
+        <tr><td>加载方式</td><td>启动时注入系统提示（常驻）</td><td>启动只给 name/description，用到再读全文</td></tr>
+        <tr><td>典型形式</td><td><code>AGENTS.md</code></td><td><code>skills/xxx/SKILL.md</code></td></tr>
+        <tr><td>代价</td><td>常驻 token，要精简</td><td>几乎零常驻成本</td></tr>
+      </table>
+<div class="callout"><b>原则：</b>持续相关的内容放入 <code>memory=</code>；偶发且篇幅长的内容放入 <code>skills=</code>（渐进式披露）。</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ================= 11 HITL ================= -->
+<section class="slide" id="s11" data-title="人工介入与持久化">
+  <div class="slide-head"><span class="no">11</span><h2>人工介入与持久化执行</h2><span class="en">Human-in-the-loop on LangGraph</span></div>
+  <p class="lead reveal-step" data-step="1">长周期 agent 常涉及高风险操作（删文件、发邮件、写数据库）。基于 LangGraph，Deep Agent 支持<b>中断 → 人工审批 → 恢复</b>。路径级 <code>permissions=</code> 可与 HITL 互补：先做声明式路径控制，再对危险工具人工审批。</p>
+  <div class="grid2">
+<pre class="py reveal-step" data-step="2">from deepagents import create_deep_agent, FilesystemPermission
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.types import Command
+
+agent = create_deep_agent(
+    model="openai:gpt-5.4",
+    tools=[send_email, delete_record],
+    permissions=[  # 可选：先匹配先生效；先拦 .env，再放行 workspace
+        FilesystemPermission(operations=["read", "write"], paths=["/workspace/.env"], mode="deny"),
+        FilesystemPermission(operations=["read", "write"], paths=["/workspace/**"], mode="allow"),
+        FilesystemPermission(operations=["read", "write"], paths=["/**"], mode="deny"),
+    ],
+    interrupt_on={
+        "send_email": True,                 # 需审批
+        "delete_record": {"allowed_decisions": ["approve", "reject"]},
+        "write_file": False,                # 不需审批
+    },
+    checkpointer=MemorySaver(),             # 中断必须有 checkpointer
+)
+
+cfg = {"configurable": {"thread_id": "hitl-1"}}
+r = agent.invoke({"messages": [("user", "通知客户并清理测试数据")]}, cfg)
+print(r["__interrupt__"])                   # 查看待审批的工具调用
+
+# 人工审批后恢复执行
+agent.invoke(Command(resume={"decisions": [{"type": "approve"}]}), cfg)</pre>
+    <figure class="reveal-step" style="margin-top:10px" data-step="3">
+      <svg viewBox="0 0 460 300">
+        <g font-size="13" text-anchor="middle">
+          <rect x="150" y="10" width="160" height="38" rx="3" fill="#e3f0f4" stroke="#0b6e8a"/><text x="230" y="34">Agent 决定调用工具</text>
+          <rect x="150" y="80" width="160" height="38" rx="3" fill="#fdf1e3" stroke="#d9a35b"/><text x="230" y="104">命中 interrupt_on？</text>
+          <rect x="10" y="160" width="150" height="38" rx="3" fill="#fff" stroke="#4a5560"/><text x="85" y="184">直接执行</text>
+          <rect x="250" y="160" width="200" height="38" rx="3" fill="#20262c"/><text x="350" y="184" fill="#fff">暂停 · 状态存入 checkpoint</text>
+          <rect x="250" y="240" width="200" height="44" rx="3" fill="#fff" stroke="#4a5560"/><text x="350" y="260">人工：approve / edit</text><text x="350" y="277">/ reject</text>
+        </g>
+        <path d="M230,48 L230,78" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+        <path d="M190,118 L100,158" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+        <path d="M270,118 L340,158" stroke="#b45309" stroke-width="1.5" marker-end="url(#arr)"/>
+        <path d="M350,198 L350,238" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+        <path d="M250,262 L85,262 L85,200" fill="none" stroke="#0b6e8a" stroke-width="1.5" marker-end="url(#arrA)"/>
+        <text x="130" y="140" font-size="11" fill="#5b6670">否</text>
+        <text x="312" y="140" font-size="11" fill="#b45309">是</text>
+        <text x="168" y="256" font-size="11" fill="#0b6e8a">Command(resume=…)</text>
+      </svg>
+      <figcaption>图 11-1 审批流程：状态持久化，可隔天恢复</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ================= 12 middleware ================= -->
+<section class="slide" id="s12" data-title="扩展：自定义中间件">
+  <div class="slide-head"><span class="no">12</span><h2>扩展与定制：渐进式工具披露</h2><span class="en">Custom Middleware</span></div>
+  <p class="lead reveal-step" data-step="1">工具数量过多（如 30+）时，工具选择准确率下降，提示词亦被工具说明膨胀。<b>渐进式工具披露</b>：先暴露少量核心工具，再按需逐步开放。</p>
+  <figure class="reveal-step" data-step="2">
+    <svg viewBox="0 0 1000 170">
+      <g font-size="12" text-anchor="middle">
+        <rect x="20" y="20" width="270" height="130" rx="3" fill="#fbe9e7" stroke="#b42318"/>
+        <text x="155" y="44" font-size="13" font-weight="700" fill="#b42318">一次性塞入 36 个工具</text>
+        <g fill="#fff" stroke="#e8a59c">
+          <rect x="34" y="58" width="36" height="18"/><rect x="76" y="58" width="36" height="18"/><rect x="118" y="58" width="36" height="18"/><rect x="160" y="58" width="36" height="18"/><rect x="202" y="58" width="36" height="18"/><rect x="244" y="58" width="36" height="18"/>
+          <rect x="34" y="82" width="36" height="18"/><rect x="76" y="82" width="36" height="18"/><rect x="118" y="82" width="36" height="18"/><rect x="160" y="82" width="36" height="18"/><rect x="202" y="82" width="36" height="18"/><rect x="244" y="82" width="36" height="18"/>
+          <rect x="34" y="106" width="36" height="18"/><rect x="76" y="106" width="36" height="18"/><rect x="118" y="106" width="36" height="18"/><rect x="160" y="106" width="36" height="18"/><rect x="202" y="106" width="36" height="18"/><rect x="244" y="106" width="36" height="18"/>
+        </g>
+        <text x="155" y="142" fill="#b42318">选错工具、提示词膨胀</text>
+
+        <path d="M300,85 L360,85" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+
+        <rect x="370" y="20" width="190" height="130" rx="3" fill="#fff" stroke="#0b6e8a"/>
+        <text x="465" y="44" font-size="13" font-weight="700">第 1 步：核心工具</text>
+        <rect x="390" y="60" width="150" height="22" fill="#e3f0f4" stroke="#0b6e8a"/><text x="465" y="76">search_tools</text>
+        <rect x="390" y="88" width="70" height="22" fill="#e3f0f4" stroke="#0b6e8a"/><text x="425" y="104">read</text>
+        <rect x="470" y="88" width="70" height="22" fill="#e3f0f4" stroke="#0b6e8a"/><text x="505" y="104">write</text>
+        <text x="465" y="138" fill="#5b6670">模型先找“需要哪类工具”</text>
+
+        <path d="M570,85 L630,85" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+
+        <rect x="640" y="20" width="340" height="130" rx="3" fill="#e7f3e8" stroke="#2f7d32"/>
+        <text x="810" y="44" font-size="13" font-weight="700" fill="#2f7d32">第 2 步：按需解锁相关工具</text>
+        <rect x="660" y="60" width="90" height="22" fill="#e3f0f4" stroke="#0b6e8a"/><text x="705" y="76">核心工具</text>
+        <rect x="760" y="60" width="100" height="22" fill="#fff" stroke="#2f7d32"/><text x="810" y="76">crm_query</text>
+        <rect x="870" y="60" width="96" height="22" fill="#fff" stroke="#2f7d32"/><text x="918" y="76">crm_update</text>
+        <rect x="760" y="88" width="100" height="22" fill="#fff" stroke="#2f7d32"/><text x="810" y="104">crm_export</text>
+        <text x="810" y="138" fill="#2f7d32">工具集合小而相关 → 表现更好</text>
+      </g>
+    </svg>
+    <figcaption>图 12-1 渐进式工具披露</figcaption>
+  </figure>
+  <div class="reveal-step" data-step="3">
+<div class="code-title">示意代码：用中间件在每次调用模型前过滤工具</div>
+  <pre class="py">from langchain.agents.middleware import AgentMiddleware, ModelRequest
+
+CORE_TOOLS = {"search_tools", "read_file", "write_file", "write_todos", "task"}
+
+class ProgressiveToolsMiddleware(AgentMiddleware):
+    def wrap_model_call(self, request: ModelRequest, handler):
+        unlocked = set(request.state.get("unlocked_tools", []))   # 由 search_tools 写入 state
+        visible = [t for t in request.tools if t.name in CORE_TOOLS | unlocked]
+        return handler(request.override(tools=visible))
+
+agent = create_deep_agent(
+    model="openai:gpt-5.4",
+    tools=all_36_tools + [search_tools],
+    middleware=[ProgressiveToolsMiddleware()],
+)</pre>
+</div>
+  <p class="muted reveal-step" data-step="4">中间件常用的钩子：<code>before_model</code> / <code>after_model</code>（改状态）、<code>wrap_model_call</code>（改请求：提示词、工具、模型）、<code>wrap_tool_call</code>（拦截工具执行：鉴权、重试、截断结果）。上面的代码只是示意，state 字段需要配合自定义 <code>state_schema</code>。</p>
+</section>
+
+<!-- ================= 13 walkthrough ================= -->
+<section class="slide" id="s13" data-title="端到端：一次深度研究">
+  <div class="slide-head"><span class="no">13</span><h2>端到端：一次深度研究任务是怎么跑完的</h2><span class="en">Execution trace</span></div>
+  <figure class="reveal-step" data-step="1">
+    <svg viewBox="0 0 1000 470">
+      <g font-size="13" text-anchor="middle" font-weight="700">
+        <rect x="30" y="14" width="120" height="32" fill="#20262c"/><text x="90" y="35" fill="#fff">用户</text>
+        <rect x="250" y="14" width="140" height="32" fill="#0b6e8a"/><text x="320" y="35" fill="#fff">主 Agent</text>
+        <rect x="500" y="14" width="140" height="32" fill="#4a5560"/><text x="570" y="35" fill="#fff">文件系统</text>
+        <rect x="750" y="14" width="160" height="32" fill="#b45309"/><text x="830" y="35" fill="#fff">research 子agent ×3</text>
+      </g>
+      <g stroke="#c4cbd1" stroke-dasharray="4 4">
+        <line x1="90" y1="46" x2="90" y2="460"/><line x1="320" y1="46" x2="320" y2="460"/>
+        <line x1="570" y1="46" x2="570" y2="460"/><line x1="830" y1="46" x2="830" y2="460"/>
+      </g>
+      <g font-size="12">
+        <path d="M90,74 L316,74" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="200" y="68" text-anchor="middle">“调研 2026 年主流 Agent 框架并写报告”</text>
+
+        <rect x="326" y="88" width="210" height="24" fill="#e3f0f4" stroke="#0b6e8a"/>
+        <text x="334" y="105">① write_todos：拆成 5 步（需已启用 TodoList）</text>
+
+        <path d="M320,134 L566,134" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="445" y="128" text-anchor="middle">② write_file /question.md（固化需求）</text>
+
+        <path d="M320,170 L826,170" stroke="#b45309" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="575" y="164" text-anchor="middle">③ 并行 task ×3：分别调研框架 A / B / C</text>
+        <rect x="836" y="180" width="156" height="58" fill="url(#hatch)" stroke="#e8a59c"/>
+        <text x="914" y="202" text-anchor="middle">各自搜索、读网页</text>
+        <text x="914" y="222" text-anchor="middle">几十次工具调用</text>
+        <path d="M830,256 L574,256" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="700" y="250" text-anchor="middle">大块原文写入 /research/*.md</text>
+        <path d="M830,288 L324,288" stroke="#2f7d32" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="575" y="282" text-anchor="middle" fill="#2f7d32">返回 3 份精炼结论 + 文件路径</text>
+
+        <rect x="326" y="302" width="210" height="24" fill="#e3f0f4" stroke="#0b6e8a"/>
+        <text x="334" y="319">④ write_todos：勾掉已完成项</text>
+
+        <path d="M320,350 L566,350" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+        <path d="M566,364 L324,364" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="445" y="344" text-anchor="middle">⑤ read_file 按需取细节</text>
+
+        <path d="M320,396 L566,396" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="445" y="390" text-anchor="middle">⑥ write_file /report.md + edit_file 修订</text>
+        <rect x="190" y="404" width="128" height="22" fill="#fdf1e3" stroke="#d9a35b"/>
+        <text x="254" y="420" text-anchor="middle" fill="#b45309">期间可能触发摘要</text>
+
+        <path d="M316,446 L94,446" stroke="#2f7d32" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="200" y="440" text-anchor="middle" fill="#2f7d32">⑦ 返回报告</text>
+      </g>
+    </svg>
+    <figcaption>图 13-1 一次深度研究任务的时序（主 agent 的上下文始终只保留计划、结论和文件引用）</figcaption>
+  </figure>
+  <p class="muted reveal-step" data-step="2">实践建议：使用 <code>agent.stream(..., stream_mode="updates", subgraphs=True)</code> 观察逐步更新，或接入 LangSmith 查看完整追踪树，以验证子 agent 上下文隔离效果。</p>
+</section>
+
+<!-- ================= 14 stack ================= -->
+<section class="slide" id="s14" data-title="LangChain / LangGraph / Deep Agents">
+  <div class="slide-head"><span class="no">14</span><h2>心智模型：框架、运行时、Harness</h2><span class="en">LangChain · LangGraph · Deep Agents</span></div>
+  <div class="grid2">
+    <figure class="reveal-step" style="margin-top:0" data-step="1">
+      <svg viewBox="0 0 480 360">
+        <rect x="20" y="20" width="440" height="96" rx="3" fill="#0b6e8a"/>
+        <text x="40" y="50" font-size="17" fill="#fff" font-weight="700">Deep Agents</text>
+        <text x="440" y="50" font-size="12" fill="#cfe6ee" text-anchor="end">Agent Harness</text>
+        <g font-size="11">
+          <rect x="40" y="64" width="72" height="22" fill="#e3f0f4"/><text x="76" y="79" text-anchor="middle">planning</text>
+          <rect x="118" y="64" width="80" height="22" fill="#e3f0f4"/><text x="158" y="79" text-anchor="middle">filesystem</text>
+          <rect x="204" y="64" width="80" height="22" fill="#e3f0f4"/><text x="244" y="79" text-anchor="middle">subagents</text>
+          <rect x="290" y="64" width="70" height="22" fill="#e3f0f4"/><text x="325" y="79" text-anchor="middle">memory</text>
+          <rect x="366" y="64" width="80" height="22" fill="#e3f0f4"/><text x="406" y="79" text-anchor="middle">压缩</text>
+        </g>
+        <text x="40" y="106" font-size="11" fill="#cfe6ee">开箱即用的高级 agent 能力</text>
+
+        <rect x="20" y="130" width="440" height="96" rx="3" fill="#20262c"/>
+        <text x="40" y="160" font-size="17" fill="#fff" font-weight="700">LangGraph</text>
+        <text x="440" y="160" font-size="12" fill="#9aa6b0" text-anchor="end">Agent Runtime</text>
+        <g font-size="11">
+          <rect x="40" y="174" width="100" height="22" fill="#3a434b"/><text x="90" y="189" text-anchor="middle" fill="#fff">durable exec</text>
+          <rect x="146" y="174" width="80" height="22" fill="#3a434b"/><text x="186" y="189" text-anchor="middle" fill="#fff">streaming</text>
+          <rect x="232" y="174" width="70" height="22" fill="#3a434b"/><text x="267" y="189" text-anchor="middle" fill="#fff">HITL</text>
+          <rect x="308" y="174" width="90" height="22" fill="#3a434b"/><text x="353" y="189" text-anchor="middle" fill="#fff">persistence</text>
+        </g>
+        <text x="40" y="216" font-size="11" fill="#9aa6b0">可靠的生产级运行能力</text>
+
+        <rect x="20" y="240" width="440" height="96" rx="3" fill="#fff" stroke="#4a5560" stroke-width="1.5"/>
+        <text x="40" y="270" font-size="17" font-weight="700">LangChain</text>
+        <text x="440" y="270" font-size="12" fill="#5b6670" text-anchor="end">Agent Framework</text>
+        <g font-size="11">
+          <rect x="40" y="284" width="60" height="22" fill="#eef1f3"/><text x="70" y="299" text-anchor="middle">models</text>
+          <rect x="106" y="284" width="56" height="22" fill="#eef1f3"/><text x="134" y="299" text-anchor="middle">tools</text>
+          <rect x="168" y="284" width="80" height="22" fill="#eef1f3"/><text x="208" y="299" text-anchor="middle">agent loop</text>
+          <rect x="254" y="284" width="86" height="22" fill="#eef1f3"/><text x="297" y="299" text-anchor="middle">middleware</text>
+        </g>
+        <text x="40" y="326" font-size="11" fill="#5b6670">标准化的基础积木</text>
+      </svg>
+      <figcaption>图 14-1 三层关系：上层构建在下层之上</figcaption>
+    </figure>
+    <div class="reveal-step" data-step="2">
+      <p class="lead"><b>Agent Harness</b>（马具、支架）指“给 agent 提供一整套运行框架和配套能力的外壳”。它不是模型本身，也不只是一段 prompt，而是把 agent 真正跑起来所需的东西打包在一起：</p>
+      <ul>
+        <li>规划与执行循环、工具调用机制</li>
+        <li>上下文管理、记忆、子agent</li>
+        <li>流式输出、持久化执行</li>
+      </ul>
+      <div class="callout"><b>类比：</b>模型≈发动机；LangChain≈零部件标准；LangGraph≈底盘与传动；Deep Agents≈整车（开箱可跑长任务）。Claude Code、Codex CLI 同属 harness。</div>
+    </div>
+  </div>
+  <table class="reveal-step" data-step="3">
+    <tr><th>维度</th><th>LangChain</th><th>LangGraph</th><th>Deep Agents</th></tr>
+    <tr><td>定位</td><td>Agent framework</td><td>Agent runtime</td><td>Agent harness</td></tr>
+    <tr><td>重点</td><td>快速开始构建 LLM 应用与 agent</td><td>生产运行与细粒度控制</td><td>开箱即用的高级 agent 能力</td></tr>
+    <tr><td>核心能力</td><td>模型 / 工具 / agent loop / middleware 的统一抽象</td><td>持久化、断点恢复、流式、人工介入、图编排</td><td>规划、子agent、文件系统、长期记忆、上下文压缩</td></tr>
+    <tr><td>适合</td><td>标准化开发、不需要复杂编排</td><td>长时间运行、需要人工介入或精细控制流程</td><td>复杂多步骤任务、需要分解问题、保持主上下文干净</td></tr>
+    <tr><td>入口</td><td><code>create_agent</code></td><td><code>StateGraph</code></td><td><code>create_deep_agent</code></td></tr>
+  </table>
+</section>
+
+<!-- ================= 15 when ================= -->
+<section class="slide" id="s15" data-title="什么时候用 Deep Agents">
+  <div class="slide-head"><span class="no">15</span><h2>什么时候用 Deep Agents？</h2><span class="en">Decision guide</span></div>
+  <div class="grid2">
+    <div class="box ok reveal-step" data-step="1"><h4>✓ 适合</h4>
+      <ul>
+        <li>复杂任务编排：深度研究、代码修改、报告撰写</li>
+        <li>需要规划与多轮工具调用（几十到上百步）</li>
+        <li>需要文件系统、记忆、子agent</li>
+        <li>需要长时间运行、可中断恢复的 agent</li>
+      </ul>
+    </div>
+    <div class="box bad reveal-step" data-step="2"><h4>✗ 不太适合</h4>
+      <ul>
+        <li>简单单轮问答（徒增延迟与成本）</li>
+        <li>纯函数式调用 / 结构化抽取</li>
+        <li>只有一个工具的小型流程</li>
+        <li>流程固定、强确定性的业务（用 LangGraph 显式建图更合适）</li>
+      </ul>
+    </div>
+  </div>
+  <figure class="reveal-step" data-step="3">
+    <svg viewBox="0 0 1000 220">
+      <g font-size="13" text-anchor="middle">
+        <rect x="20" y="88" width="170" height="44" rx="3" fill="#20262c"/><text x="105" y="115" fill="#fff">新需求</text>
+        <rect x="240" y="88" width="190" height="44" rx="3" fill="#fdf1e3" stroke="#d9a35b"/><text x="335" y="108">流程步骤是否固定</text><text x="335" y="124" font-size="11">且可预先画出？</text>
+        <rect x="480" y="20" width="220" height="44" rx="3" fill="#fff" stroke="#4a5560"/><text x="590" y="47">LangGraph 显式工作流</text>
+        <rect x="480" y="150" width="190" height="44" rx="3" fill="#fdf1e3" stroke="#d9a35b"/><text x="575" y="170">步骤多、要规划、</text><text x="575" y="186" font-size="11">上下文会膨胀？</text>
+        <rect x="730" y="100" width="250" height="44" rx="3" fill="#fff" stroke="#4a5560"/><text x="855" y="127">LangChain create_agent</text>
+        <rect x="730" y="166" width="250" height="44" rx="3" fill="#0b6e8a"/><text x="855" y="193" fill="#fff" font-weight="700">Deep Agents</text>
+      </g>
+      <path d="M190,110 L238,110" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M430,100 L478,46" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M430,120 L478,170" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M670,164 L728,124" stroke="#4a5560" stroke-width="1.5" marker-end="url(#arr)"/>
+      <path d="M670,180 L728,188" stroke="#0b6e8a" stroke-width="1.5" marker-end="url(#arrA)"/>
+      <g font-size="11" fill="#5b6670">
+        <text x="446" y="64">是</text><text x="446" y="160">否</text>
+        <text x="640" y="134">否：短链路</text><text x="690" y="200" fill="#0b6e8a">是</text>
+      </g>
+    </svg>
+    <figcaption>图 15-1 选型决策树（三者可以混用：Deep Agent 也能作为 LangGraph 图中的一个节点）</figcaption>
+  </figure>
+</section>
+
+<!-- ================= 16 practice ================= -->
+<section class="slide" id="s16" data-title="最佳实践与常见坑">
+  <div class="slide-head"><span class="no">16</span><h2>最佳实践与常见坑</h2><span class="en">Best practices &amp; pitfalls</span></div>
+  <div class="grid2">
+<div class="reveal-step" data-step="1">
+      <h3>最佳实践</h3>
+      <table>
+        <tr><th>方面</th><th>建议</th></tr>
+        <tr><td>系统提示词</td><td>写清楚领域流程：何时规划、何时委派、产出写到哪个文件、最终交付格式</td></tr>
+        <tr><td>子agent</td><td><code>description</code> 写清“用途 + 时机 + 输入粒度”；要求只回传结论，别回传原始数据</td></tr>
+        <tr><td>模型分层</td><td>主 agent 用强模型做规划与综合；子agent可用更便宜、更快的模型</td></tr>
+        <tr><td>工具</td><td>工具少而精；返回值精简；工具多时用渐进式披露</td></tr>
+        <tr><td>记忆</td><td>memory 保持短小；长知识放 skills 或文件，按需读取</td></tr>
+        <tr><td>可观测</td><td>接入 LangSmith，重点看 token 曲线、子agent调用次数、失败的工具调用</td></tr>
+      </table>
+    </div>
+<div>
+      <h3 class="reveal-step" data-step="2">常见坑</h3>
+      <div class="box warn reveal-step" style="margin-bottom:8px" data-step="3"><h4>成本与延迟失控</h4>规划、子 agent、摘要均会额外调用 LLM；简单任务使用 Deep Agent 可能显著增加延迟。应设置递归上限并监控成本。</div>
+      <div class="box warn reveal-step" style="margin-bottom:8px" data-step="4"><h4>子 agent 过度委派</h4>主 agent 将过细任务也委派出去，或子 agent 之间重复劳动。应在提示词中给出委派标准与并行上限。</div>
+      <div class="box warn reveal-step" style="margin-bottom:8px" data-step="5"><h4>摘要丢失关键信息</h4>重要的约束和决策应该<b>主动写进文件或 todos</b>，不要只依赖消息历史。</div>
+      <div class="box warn reveal-step" data-step="6"><h4>安全边界</h4>本地文件系统或沙箱执行后端拥有真实权限，要限定根目录、对危险工具配置 <code>interrupt_on</code>。</div>
+    </div>
+</div>
+</section>
+
+<!-- ================= 17 summary ================= -->
+</main>
+</div>
+
+<script>
+﻿(() => {
+  const slides = [...document.querySelectorAll('section.slide')];
+  const toc = document.getElementById('toc');
+
+  // TOC
+  slides.forEach((s, i) => {
+    const a = document.createElement('a');
+    a.href = '#' + s.id;
+    a.innerHTML = `<span class="num">${String(i).padStart(2, '0')}</span>${s.dataset.title}`;
+    toc.appendChild(a);
+  });
+  const links = [...toc.querySelectorAll('a')];
+  const io = new IntersectionObserver(entries => entries.forEach(e => {
+    if (e.isIntersecting) links.forEach(l => l.classList.toggle('active', l.hash === '#' + e.target.id));
+  }), { rootMargin: '-30% 0px -60% 0px' });
+  slides.forEach(s => io.observe(s));
+
+  // Python highlighter
+  const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const re = /(#[^\n]*)|("""[\s\S]*?"""|f?"[^"\n]*"|'[^'\n]*')|\b(from|import|def|class|return|for|in|if|else|lambda|with|as|None|True|False|print)\b|\b([A-Za-z_]\w*)(?=\()/g;
+  document.querySelectorAll('pre.py').forEach(pre => {
+    const src = pre.textContent;
+    let out = '', last = 0, m;
+    while ((m = re.exec(src))) {
+      out += esc(src.slice(last, m.index));
+      const cls = m[1] ? 'c' : m[2] ? 's' : m[3] ? 'k' : 'f';
+      out += `<span class="${cls}">${esc(m[0])}</span>`;
+      last = re.lastIndex;
+    }
+    pre.innerHTML = out + esc(src.slice(last));
+  });
+
+  // Presentation + modular reveal
+  const btn = document.getElementById('btnPresent');
+  const pager = document.getElementById('pager');
+  const stepInd = document.getElementById('stepInd');
+  let cur = 0;
+  let step = 0;
+
+  const stepsOf = (slide) =>
+    [...slide.querySelectorAll('.reveal-step')].sort(
+      (a, b) => (+a.dataset.step || 0) - (+b.dataset.step || 0)
+    );
+
+  const applySteps = (slide, shown) => {
+    const list = stepsOf(slide);
+    list.forEach((el, i) => el.classList.toggle('is-shown', i < shown));
+    const n = list.length;
+    if (stepInd) stepInd.textContent = n ? (`步骤 ` + Math.min(shown, n) + `/` + n) : '';
+  };
+
+  const show = (i, opts) => {
+    opts = opts || {};
+    const revealAll = !!opts.revealAll;
+    const reset = (opts.reset !== false) && !revealAll;
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, j) => s.classList.toggle('current', j === cur));
+    pager.textContent = (cur + 1) + ` / ` + slides.length;
+    const list = stepsOf(slides[cur]);
+    if (revealAll) step = list.length;
+    else if (reset) {
+      // 有页头时从 0 起（只露标题）；封面无页头时先露出第 1 块，避免黑屏
+      step = slides[cur].querySelector('.slide-head') ? 0 : (list.length ? 1 : 0);
+    }
+    applySteps(slides[cur], step);
+    window.scrollTo(0, 0);
+  };
+
+  const next = () => {
+    const list = stepsOf(slides[cur]);
+    if (step < list.length) {
+      step += 1;
+      applySteps(slides[cur], step);
+    } else if (cur < slides.length - 1) {
+      show(cur + 1, { reset: true });
+    }
+  };
+
+  const prev = () => {
+    if (step > 0) {
+      step -= 1;
+      applySteps(slides[cur], step);
+    } else if (cur > 0) {
+      show(cur - 1, { revealAll: true, reset: false });
+    }
+  };
+
+  const toggle = () => {
+    const on = document.body.classList.toggle('present');
+    btn.textContent = on ? '退出演示 (Esc)' : '演示模式 (P)';
+    if (on) {
+      const y = window.scrollY + 120;
+      const idx = slides.findLastIndex(s => s.offsetTop <= y);
+      show(idx < 0 ? 0 : idx, { reset: true });
+    } else {
+      slides.forEach(s => stepsOf(s).forEach(el => el.classList.add('is-shown')));
+      if (stepInd) stepInd.textContent = '';
+      slides[cur].scrollIntoView();
+    }
+  };
+
+  btn.onclick = toggle;
+
+  document.addEventListener('keydown', e => {
+    const present = document.body.classList.contains('present');
+    if (e.target && /input|textarea|select/i.test(e.target.tagName)) {
+      if (e.key === 'p' || e.key === 'P') return;
+    }
+    if (e.key === 'p' || e.key === 'P') {
+      if (e.target && /input|textarea|select/i.test(e.target.tagName)) return;
+      toggle();
+    } else if (present && e.key === 'Escape') {
+      toggle();
+    } else if (present && (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ')) {
+      e.preventDefault();
+      next();
+    } else if (present && (e.key === 'ArrowLeft' || e.key === 'PageUp')) {
+      e.preventDefault();
+      prev();
+    }
+  });
+
+  document.addEventListener('click', e => {
+    if (!document.body.classList.contains('present')) return;
+    if (e.target.closest('a, button, summary, input, textarea, select, pre')) return;
+    const slide = slides[cur];
+    if (!slide || !slide.contains(e.target)) return;
+    next();
+  });
+})();
+
+</script>
+</body>
+</html>
