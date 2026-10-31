@@ -8,13 +8,12 @@ load_dotenv()
 
 llm = ChatOpenAI(
     model="deepseek-v4-flash-0731",
-    api_key=os.getenv("YT_APP_ID"),
+    api_key=os.getenv("DEEPSEEK_API_KEY"),
     base_url=os.getenv("YT_URL"),
 )
 
 
 def main():
-    print("Hello from langchain-agent-course!")
 
     response = llm.invoke("Hello, 你是谁?")
     print(response.content)
