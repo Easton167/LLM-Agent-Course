@@ -7,9 +7,9 @@ load_dotenv()
 
 
 llm = ChatOpenAI(
-    model="deepseek-v4-flash-0731",
-    api_key=os.getenv("DEEPSEEK_API_KEY"),
-    base_url=os.getenv("YT_URL"),
+    model="qwen3.6-flash",
+    api_key=os.getenv("DASHSCOPE_API_KEY"),
+    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
 )
 
 

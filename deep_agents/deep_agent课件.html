@@ -196,11 +196,11 @@
 <div class="kicker">LANGCHAIN · LANGGRAPH · DEEPAGENTS</div>
   <h1>Deep Agents：让 Agent 胜任“长周期、复杂任务”</h1>
 </div>
-  <p class="reveal-step" data-step="2">Claude Code、Deep Research、Manus 等产品可长时间运行并完成大量工具调用。其共性在于一套可复用的工程结构。<br>
-  Deep Agents 把这套套路抽象成了一个开箱即用的 <b style="color:#fff">Agent Harness</b>：规划、文件系统、子agent、上下文压缩、长期记忆。</p>
+  <p class="reveal-step" data-step="2">Claude Code、Codex、Manus 等产品可长时间运行并完成大量工具调用。其共性在于一套可复用的工程结构。<br>
+  Deep Agents 把这套套路抽象成了一个开箱即用的 <b style="color:#fff">Agent Harness</b>：规划、文件系统、Subagent、上下文压缩、长期记忆。</p>
   <div class="meta reveal-step" data-step="3">
     <div><b>学习目标</b>理解 Shallow Agent 的瓶颈与 Deep Agent 的设计</div>
-    <div><b>核心能力</b>Planning / Filesystem / SubAgent / Memory</div>
+    <div><b>核心能力</b>Planning / Filesystem / Subagent / Memory</div>
     <div><b>动手实践</b><code style="background:#2c343b;color:#a5d6a7">create_deep_agent</code> 的典型用法</div>
     <div><b>参考</b><a href="https://www.langchain.com/blog/deep-agents" target="_blank">LangChain Blog: Deep Agents</a></div>
   </div>
@@ -250,7 +250,7 @@
       <rect x="840" y="44" width="140" height="40" rx="3" fill="#fff" stroke="#4a5560"/>
       <text x="910" y="69" font-size="13" text-anchor="middle">🗂 虚拟文件系统</text>
       <rect x="540" y="196" width="120" height="40" rx="3" fill="#fff" stroke="#4a5560"/>
-      <text x="600" y="221" font-size="13" text-anchor="middle">🤖 子agent ×N</text>
+      <text x="600" y="221" font-size="13" text-anchor="middle">🤖 Subagent ×N</text>
       <rect x="840" y="196" width="140" height="40" rx="3" fill="#fff" stroke="#4a5560"/>
       <text x="910" y="221" font-size="13" text-anchor="middle">🧠 长期记忆</text>
       <path d="M660,72 L690,108" stroke="#0b6e8a" stroke-width="1.5" marker-start="url(#arrA)" marker-end="url(#arrA)"/>
@@ -273,8 +273,8 @@
 
 <!-- ================= 02 origin ================= -->
 <section class="slide" id="s2" data-title="Deep Agent 从哪来">
-  <div class="slide-head"><span class="no">02</span><h2>Deep Agent 从哪来？四大支柱</h2><span class="en">Lessons from Claude Code / Deep Research / Manus</span></div>
-  <p class="lead reveal-step" data-step="1">LangChain 团队分析了 Claude Code、OpenAI Deep Research、Manus 等能“长时间干活”的产品，发现它们的底层算法依然是同一个工具调用循环，<b>差异全部在“循环之外”的四样东西</b>：</p>
+  <div class="slide-head"><span class="no">02</span><h2>Deep Agent 从哪来？四大支柱</h2><span class="en">Lessons from Claude Code / Codex / Manus</span></div>
+  <p class="lead reveal-step" data-step="1">LangChain 团队分析了 Claude Code、Manus 等能“长时间干活”的产品，发现它们的底层算法依然是同一个工具调用循环，<b>差异全部在“循环之外”的四样东西</b>：</p>
   <figure class="reveal-step" data-step="2">
     <svg viewBox="0 0 1000 250">
       <rect x="20" y="20" width="960" height="44" rx="3" fill="#20262c"/>
@@ -298,7 +298,7 @@
 
         <rect x="510" y="84" width="225" height="150" rx="3" fill="#fff" stroke="#0b6e8a"/>
         <rect x="510" y="84" width="225" height="32" fill="#e3f0f4" stroke="#0b6e8a"/>
-        <text x="622" y="105" text-anchor="middle" font-weight="700" font-size="14">③ 子agent</text>
+        <text x="622" y="105" text-anchor="middle" font-weight="700" font-size="14">③ Subagent</text>
         <text x="524" y="140" fill="#2c353d">• task 工具派发子任务</text>
         <text x="524" y="162" fill="#2c353d">• 独立的全新上下文</text>
         <text x="524" y="184" fill="#2c353d">• 只回传精简结论</text>
@@ -343,14 +343,14 @@ print(result["messages"][-1].content)</pre>
 </div>
   <div class="reveal-step" data-step="2">
 <h3>模型到底多带了什么？</h3>
-  <p class="lead">仅传入 <code>get_weather</code> 时，harness 仍会默认挂载<b>文件系统</b>与<b>子代理</b>。先建立「默认 / 可选」心智模型，再展开具体工具。</p>
+  <p class="lead">仅传入 <code>get_weather</code> 时，harness 仍会默认挂载<b>文件系统</b>与<b>Subagent</b>。先建立「默认 / 可选」心智模型，再展开具体工具。</p>
 </div>
   <div class="grid2 reveal-step" data-step="3">
     <div class="box ok">
       <h4><span class="tag a">默认</span></h4>
       <ul>
         <li><b>文件系统</b>：笔记、报告与大结果外置存储，按需回读</li>
-        <li><b>子代理 <code>task</code></b>：委派繁杂子任务，主 agent 仅接收结论</li>
+        <li><b>Subagent <code>task</code></b>：委派繁杂子任务，主 agent 仅接收结论</li>
       </ul>
       <p class="muted" style="margin:8px 0 0">另含 Summarization、PatchToolCalls 与提示词缓存等辅助能力，下一节拆中间件栈时再述。</p>
     </div>
@@ -393,7 +393,7 @@ print(result["messages"][-1].content)</pre>
         <rect x="240" y="56" width="520" height="34" fill="#fff" stroke="#9aa6b0"/>
         <text x="254" y="78" font-weight="700">FilesystemMiddleware</text><text x="560" y="78" fill="#5b6670">文件工具 + 大结果落盘</text>
         <rect x="240" y="94" width="520" height="34" fill="#fff" stroke="#9aa6b0"/>
-        <text x="254" y="116" font-weight="700">SubAgentMiddleware</text><text x="560" y="116" fill="#5b6670">task + general-purpose 子agent</text>
+        <text x="254" y="116" font-weight="700">SubagentMiddleware</text><text x="560" y="116" fill="#5b6670">task + general-purpose Subagent</text>
         <rect x="240" y="132" width="520" height="34" fill="#fff" stroke="#9aa6b0"/>
         <text x="254" y="154" font-weight="700">SummarizationMiddleware</text><text x="560" y="154" fill="#5b6670">接近窗口上限时自动摘要</text>
         <rect x="240" y="170" width="520" height="34" fill="#fff" stroke="#9aa6b0"/>
@@ -466,7 +466,7 @@ agent = create_deep_agent(
           <rect x="356" y="56" width="82" height="18" fill="#fff" stroke="#a9d3ab"/><text x="397" y="69" font-size="11" fill="#2f7d32" text-anchor="middle">completed</text>
 
           <rect x="10" y="84" width="440" height="40" fill="#e7f3e8" stroke="#d3d8dd"/>
-          <text x="24" y="109" fill="#2f7d32">✔</text><text x="46" y="109">委派子agent调研同类产品</text>
+          <text x="24" y="109" fill="#2f7d32">✔</text><text x="46" y="109">委派Subagent调研同类产品</text>
           <rect x="356" y="96" width="82" height="18" fill="#fff" stroke="#a9d3ab"/><text x="397" y="109" font-size="11" fill="#2f7d32" text-anchor="middle">completed</text>
 
           <rect x="10" y="124" width="440" height="40" fill="#e3f0f4" stroke="#0b6e8a" stroke-width="1.5"/>
@@ -478,7 +478,7 @@ agent = create_deep_agent(
           <rect x="356" y="176" width="82" height="18" fill="#fff" stroke="#d3d8dd"/><text x="397" y="189" font-size="11" fill="#5b6670" text-anchor="middle">pending</text>
 
           <rect x="10" y="204" width="440" height="40" fill="#fff" stroke="#d3d8dd"/>
-          <text x="24" y="229" fill="#9aa6b0">○</text><text x="46" y="229">委派审稿子agent检查事实</text>
+          <text x="24" y="229" fill="#9aa6b0">○</text><text x="46" y="229">委派审稿Subagent检查事实</text>
           <rect x="356" y="216" width="82" height="18" fill="#fff" stroke="#d3d8dd"/><text x="397" y="229" font-size="11" fill="#5b6670" text-anchor="middle">pending</text>
         </g>
         <path d="M60,262 C60,300 200,300 230,272" fill="none" stroke="#b45309" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
@@ -494,7 +494,7 @@ agent = create_deep_agent(
       <g font-size="13" text-anchor="middle">
         <rect x="20" y="36" width="140" height="44" rx="3" fill="#e3f0f4" stroke="#0b6e8a"/><text x="90" y="63">理解任务</text>
         <rect x="210" y="36" width="140" height="44" rx="3" fill="#e3f0f4" stroke="#0b6e8a"/><text x="280" y="63">write_todos 规划</text>
-        <rect x="400" y="36" width="160" height="44" rx="3" fill="#fff" stroke="#4a5560"/><text x="480" y="57">执行当前步骤</text><text x="480" y="73" font-size="11" fill="#5b6670">工具 / 文件 / 子agent</text>
+        <rect x="400" y="36" width="160" height="44" rx="3" fill="#fff" stroke="#4a5560"/><text x="480" y="57">执行当前步骤</text><text x="480" y="73" font-size="11" fill="#5b6670">工具 / 文件 / Subagent</text>
         <rect x="610" y="36" width="160" height="44" rx="3" fill="#e3f0f4" stroke="#0b6e8a"/><text x="690" y="57">更新 todos</text><text x="690" y="73" font-size="11" fill="#5b6670">完成 / 调整 / 新增</text>
         <rect x="820" y="36" width="160" height="44" rx="3" fill="#e7f3e8" stroke="#2f7d32"/><text x="900" y="63">全部完成 → 输出</text>
       </g>
@@ -531,7 +531,7 @@ agent = create_deep_agent(
       <ul>
         <li><b>草稿本</b>：笔记、中间结论、报告草稿；</li>
         <li><b>卸载区</b>：大工具结果自动落盘（见第 08 节）；</li>
-        <li><b>协作区</b>：主 agent 与子agent通过文件交换大块内容。</li>
+        <li><b>协作区</b>：主 agent 与Subagent通过文件交换大块内容。</li>
       </ul>
     </div>
     <figure class="reveal-step" style="margin-top:0" data-step="3">
@@ -578,10 +578,10 @@ agent = create_deep_agent(
   </div>
 </section>
 
-<!-- ================= 07 subagent ================= -->
-<section class="slide" id="s7" data-title="能力三：子agent隔离">
-  <div class="slide-head"><span class="no">07</span><h2>能力三：子agent与上下文隔离</h2><span class="en">SubAgents &amp; Context Isolation</span></div>
-  <p class="lead reveal-step" data-step="1">当某个子任务会产生大量工具调用、搜索结果或文件内容时，交给 <b>subagent</b> 去做。主 agent <b>仅接收最终结论</b>，中间过程不进入其上下文。</p>
+<!-- ================= 07 Subagent ================= -->
+<section class="slide" id="s7" data-title="能力三：Subagent隔离">
+  <div class="slide-head"><span class="no">07</span><h2>能力三：Subagent与上下文隔离</h2><span class="en">Subagents &amp; Context Isolation</span></div>
+  <p class="lead reveal-step" data-step="1">当某个子任务会产生大量工具调用、搜索结果或文件内容时，交给 <b>Subagent</b> 去做。主 agent <b>仅接收最终结论</b>，中间过程不进入其上下文。</p>
   <figure class="reveal-step" data-step="2">
     <svg viewBox="0 0 1000 330">
       <!-- main agent -->
@@ -607,17 +607,17 @@ agent = create_deep_agent(
       <!-- sub agents -->
       <g font-size="12">
         <rect x="440" y="30" width="330" height="80" rx="3" fill="#fafbfb" stroke="#9aa6b0"/>
-        <text x="452" y="50" font-weight="700">子agent A（全新上下文）</text>
+        <text x="452" y="50" font-weight="700">Subagent A（全新上下文）</text>
         <rect x="452" y="60" width="306" height="38" fill="url(#hatch)" stroke="#e8a59c"/>
         <text x="605" y="84" text-anchor="middle" fill="#b42318">搜索 ×8 · 网页 ×12 · 约 60k tokens</text>
 
         <rect x="440" y="125" width="330" height="80" rx="3" fill="#fafbfb" stroke="#9aa6b0"/>
-        <text x="452" y="145" font-weight="700">子agent B（全新上下文）</text>
+        <text x="452" y="145" font-weight="700">Subagent B（全新上下文）</text>
         <rect x="452" y="155" width="306" height="38" fill="url(#hatch)" stroke="#e8a59c"/>
         <text x="605" y="179" text-anchor="middle" fill="#b42318">搜索 ×6 · 代码阅读 · 约 45k tokens</text>
 
         <rect x="440" y="220" width="330" height="80" rx="3" fill="#fafbfb" stroke="#9aa6b0"/>
-        <text x="452" y="240" font-weight="700">子agent C（全新上下文）</text>
+        <text x="452" y="240" font-weight="700">Subagent C（全新上下文）</text>
         <rect x="452" y="250" width="306" height="38" fill="url(#hatch)" stroke="#e8a59c"/>
         <text x="605" y="274" text-anchor="middle" fill="#b42318">搜索 ×10 · 文档 · 约 70k tokens</text>
       </g>
@@ -633,7 +633,7 @@ agent = create_deep_agent(
       <text x="907" y="176" font-size="22" text-anchor="middle" fill="#2f7d32">↓</text>
       <text x="907" y="204" font-size="12" text-anchor="middle">≈ 1k tokens</text>
       <text x="907" y="224" font-size="12" text-anchor="middle">的精炼结论</text>
-      <text x="907" y="262" font-size="11" text-anchor="middle" fill="#5b6670">中间过程随子agent销毁</text>
+      <text x="907" y="262" font-size="11" text-anchor="middle" fill="#5b6670">中间过程随Subagent销毁</text>
     </svg>
     <figcaption>图 7-1 上下文隔离：子 agent 消化中间过程，主 agent 仅接收结论（token 数为示意）</figcaption>
   </figure>
@@ -641,28 +641,28 @@ agent = create_deep_agent(
     <div>
       <h3>工作方式</h3>
       <ol>
-        <li>主 agent 拥有 <code>task</code> 工具（参数：子agent类型 + 任务描述）；</li>
-        <li>子agent用<b>自己的新上下文</b>执行，拥有自己的工具与提示词；</li>
+        <li>主 agent 拥有 <code>task</code> 工具（参数：Subagent类型 + 任务描述）；</li>
+        <li>Subagent用<b>自己的新上下文</b>执行，拥有自己的工具与提示词；</li>
         <li>完成后返回一条<b>简洁结果</b>作为 <code>task</code> 的工具结果；</li>
         <li>主 agent 基于结果继续推理。多个 <code>task</code> 调用可以<b>并行</b>。</li>
       </ol>
-      <p class="muted">默认总有一个 <code>general-purpose</code> 子agent：与主 agent 同提示词同工具，用于上下文隔离。</p>
+      <p class="muted">默认总有一个 <code>general-purpose</code> Subagent：与主 agent 同提示词同工具，用于上下文隔离。</p>
     </div>
     <div>
-<div class="code-title">自定义子agent</div>
-<pre class="py">research_subagent = {
+<div class="code-title">自定义Subagent</div>
+<pre class="py">research_Subagent = {
     "name": "research-agent",
     "description": "深入研究单个主题。一次只给它一个主题。",
     "system_prompt": "你是严谨的研究员，最终只输出结论与引用来源。",
     "tools": [internet_search],
-    "model": "openai:gpt-5.4-mini",   # 可选：子agent用更便宜的模型
+    "model": "openai:gpt-5.4-mini",   # 可选：Subagent用更便宜的模型
 }
 
 agent = create_deep_agent(
     model="openai:gpt-5.4",
     tools=[internet_search],
     system_prompt=RESEARCH_INSTRUCTIONS,
-    subagents=[research_subagent],
+    Subagents=[research_Subagent],
 )</pre>
     </div>
   </div>
@@ -739,7 +739,7 @@ agent = create_deep_agent(
         <text x="34" y="226" fill="#2c353d" font-size="12">自动 offload + summary，避免超窗</text>
         <rect x="690" y="40" width="290" height="62" rx="3" fill="#fff" stroke="#4a5560"/>
         <text x="704" y="64" font-weight="700">④ Context isolation 隔离</text>
-        <text x="704" y="86" fill="#2c353d" font-size="12">用子agent承接重任务，只回传结论</text>
+        <text x="704" y="86" fill="#2c353d" font-size="12">用Subagent承接重任务，只回传结论</text>
         <rect x="690" y="150" width="290" height="62" rx="3" fill="#e3f0f4" stroke="#0b6e8a"/>
         <text x="704" y="174" font-weight="700">⑤ Long-term memory 长期记忆</text>
         <text x="704" y="196" fill="#2c353d" font-size="12">跨线程保存偏好、约定、进度、事实</text>
@@ -756,12 +756,12 @@ agent = create_deep_agent(
   <table class="reveal-step" data-step="3">
     <tr><th>类别</th><th>放什么</th><th>谁能看到</th><th>生命周期</th></tr>
     <tr><td>Input context</td><td>系统提示词、AGENTS.md 记忆、技能描述、工具说明</td><td>模型</td><td>每次调用</td></tr>
-    <tr><td>Runtime context</td><td>user_id、租户、API key、数据库连接</td><td>工具 / 中间件（可传递给子agent）</td><td>单次运行</td></tr>
+    <tr><td>Runtime context</td><td>user_id、租户、API key、数据库连接</td><td>工具 / 中间件（可传递给Subagent）</td><td>单次运行</td></tr>
     <tr><td>Compression</td><td>被卸载的大结果、历史摘要</td><td>模型（按需读取）</td><td>线程内</td></tr>
-    <tr><td>Isolation</td><td>子agent的中间过程</td><td>仅子agent</td><td>子任务结束即丢弃</td></tr>
+    <tr><td>Isolation</td><td>Subagent的中间过程</td><td>仅Subagent</td><td>子任务结束即丢弃</td></tr>
     <tr><td>Long-term memory</td><td>用户偏好、项目约定、研究进度</td><td>模型（经文件工具）</td><td>跨线程、跨会话</td></tr>
   </table>
-  <div class="callout reveal-step" data-step="4"><b>注意：</b>Runtime context 会传递给子agent，但<b>不会自动暴露给模型</b>。敏感信息（如 API key）应经工具或中间件读取后使用，勿写入提示词。</div>
+  <div class="callout reveal-step" data-step="4"><b>注意：</b>Runtime context 会传递给Subagent，但<b>不会自动暴露给模型</b>。敏感信息（如 API key）应经工具或中间件读取后使用，勿写入提示词。</div>
 </section>
 
 <!-- ================= 10 memory ================= -->
@@ -942,7 +942,7 @@ agent = create_deep_agent(
         <rect x="30" y="14" width="120" height="32" fill="#20262c"/><text x="90" y="35" fill="#fff">用户</text>
         <rect x="250" y="14" width="140" height="32" fill="#0b6e8a"/><text x="320" y="35" fill="#fff">主 Agent</text>
         <rect x="500" y="14" width="140" height="32" fill="#4a5560"/><text x="570" y="35" fill="#fff">文件系统</text>
-        <rect x="750" y="14" width="160" height="32" fill="#b45309"/><text x="830" y="35" fill="#fff">research 子agent ×3</text>
+        <rect x="750" y="14" width="160" height="32" fill="#b45309"/><text x="830" y="35" fill="#fff">research Subagent ×3</text>
       </g>
       <g stroke="#c4cbd1" stroke-dasharray="4 4">
         <line x1="90" y1="46" x2="90" y2="460"/><line x1="320" y1="46" x2="320" y2="460"/>
@@ -1001,7 +1001,7 @@ agent = create_deep_agent(
         <g font-size="11">
           <rect x="40" y="64" width="72" height="22" fill="#e3f0f4"/><text x="76" y="79" text-anchor="middle">planning</text>
           <rect x="118" y="64" width="80" height="22" fill="#e3f0f4"/><text x="158" y="79" text-anchor="middle">filesystem</text>
-          <rect x="204" y="64" width="80" height="22" fill="#e3f0f4"/><text x="244" y="79" text-anchor="middle">subagents</text>
+          <rect x="204" y="64" width="80" height="22" fill="#e3f0f4"/><text x="244" y="79" text-anchor="middle">Subagents</text>
           <rect x="290" y="64" width="70" height="22" fill="#e3f0f4"/><text x="325" y="79" text-anchor="middle">memory</text>
           <rect x="366" y="64" width="80" height="22" fill="#e3f0f4"/><text x="406" y="79" text-anchor="middle">压缩</text>
         </g>
@@ -1035,7 +1035,7 @@ agent = create_deep_agent(
       <p class="lead"><b>Agent Harness</b>（马具、支架）指“给 agent 提供一整套运行框架和配套能力的外壳”。它不是模型本身，也不只是一段 prompt，而是把 agent 真正跑起来所需的东西打包在一起：</p>
       <ul>
         <li>规划与执行循环、工具调用机制</li>
-        <li>上下文管理、记忆、子agent</li>
+        <li>上下文管理、记忆、Subagent</li>
         <li>流式输出、持久化执行</li>
       </ul>
       <div class="callout"><b>类比：</b>模型≈发动机；LangChain≈零部件标准；LangGraph≈底盘与传动；Deep Agents≈整车（开箱可跑长任务）。Claude Code、Codex CLI 同属 harness。</div>
@@ -1045,7 +1045,7 @@ agent = create_deep_agent(
     <tr><th>维度</th><th>LangChain</th><th>LangGraph</th><th>Deep Agents</th></tr>
     <tr><td>定位</td><td>Agent framework</td><td>Agent runtime</td><td>Agent harness</td></tr>
     <tr><td>重点</td><td>快速开始构建 LLM 应用与 agent</td><td>生产运行与细粒度控制</td><td>开箱即用的高级 agent 能力</td></tr>
-    <tr><td>核心能力</td><td>模型 / 工具 / agent loop / middleware 的统一抽象</td><td>持久化、断点恢复、流式、人工介入、图编排</td><td>规划、子agent、文件系统、长期记忆、上下文压缩</td></tr>
+    <tr><td>核心能力</td><td>模型 / 工具 / agent loop / middleware 的统一抽象</td><td>持久化、断点恢复、流式、人工介入、图编排</td><td>规划、Subagent、文件系统、长期记忆、上下文压缩</td></tr>
     <tr><td>适合</td><td>标准化开发、不需要复杂编排</td><td>长时间运行、需要人工介入或精细控制流程</td><td>复杂多步骤任务、需要分解问题、保持主上下文干净</td></tr>
     <tr><td>入口</td><td><code>create_agent</code></td><td><code>StateGraph</code></td><td><code>create_deep_agent</code></td></tr>
   </table>
@@ -1059,7 +1059,7 @@ agent = create_deep_agent(
       <ul>
         <li>复杂任务编排：深度研究、代码修改、报告撰写</li>
         <li>需要规划与多轮工具调用（几十到上百步）</li>
-        <li>需要文件系统、记忆、子agent</li>
+        <li>需要文件系统、记忆、Subagent</li>
         <li>需要长时间运行、可中断恢复的 agent</li>
       </ul>
     </div>
@@ -1105,11 +1105,11 @@ agent = create_deep_agent(
       <table>
         <tr><th>方面</th><th>建议</th></tr>
         <tr><td>系统提示词</td><td>写清楚领域流程：何时规划、何时委派、产出写到哪个文件、最终交付格式</td></tr>
-        <tr><td>子agent</td><td><code>description</code> 写清“用途 + 时机 + 输入粒度”；要求只回传结论，别回传原始数据</td></tr>
-        <tr><td>模型分层</td><td>主 agent 用强模型做规划与综合；子agent可用更便宜、更快的模型</td></tr>
+        <tr><td>Subagent</td><td><code>description</code> 写清“用途 + 时机 + 输入粒度”；要求只回传结论，别回传原始数据</td></tr>
+        <tr><td>模型分层</td><td>主 agent 用强模型做规划与综合；Subagent可用更便宜、更快的模型</td></tr>
         <tr><td>工具</td><td>工具少而精；返回值精简；工具多时用渐进式披露</td></tr>
         <tr><td>记忆</td><td>memory 保持短小；长知识放 skills 或文件，按需读取</td></tr>
-        <tr><td>可观测</td><td>接入 LangSmith，重点看 token 曲线、子agent调用次数、失败的工具调用</td></tr>
+        <tr><td>可观测</td><td>接入 LangSmith，重点看 token 曲线、Subagent调用次数、失败的工具调用</td></tr>
       </table>
     </div>
 <div>
